@@ -1,6 +1,7 @@
 /*
 
 
+
 import React from 'react';
 import { Layout, Avatar, Dropdown, Space, Typography } from 'antd';
 import {
@@ -111,7 +112,10 @@ const Header: React.FC<HeaderProps> = ({ collapsed }) => {
     );
 };
 
-export default Header;*/
+export default Header;
+
+*/
+
 
 import React from 'react';
 import { Layout, Avatar, Dropdown, Space } from 'antd';
@@ -127,10 +131,8 @@ import { useAuth } from "../../context/AuthContext";
 
 const { Header: AntHeader } = Layout;
 
-
 interface HeaderProps {
     collapsed: boolean;
-    style?: React.CSSProperties;
 }
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -149,7 +151,7 @@ function getItem(
     } as MenuItem;
 }
 
-const Header: React.FC<HeaderProps> = ({ collapsed, style }) => {
+const Header: React.FC<HeaderProps> = ({ collapsed }) => {
     const { logout, token } = useAuth();
 
     const jwtDecode = (token:string) => {
@@ -161,7 +163,8 @@ const Header: React.FC<HeaderProps> = ({ collapsed, style }) => {
     };
 
 
-    const userName = token ? (jwtDecode(token) as any)?.name : 'Guest';
+    const userName = token ? (jwtDecode(token) as any)?.name : null;
+
 
     const handleMenuClick = async (e: any) => {
         console.log('Menu Item Clicked:', e.key);
@@ -192,6 +195,8 @@ const Header: React.FC<HeaderProps> = ({ collapsed, style }) => {
 
     ];
 
+
+
     return (
         <AntHeader
             style={{
@@ -200,7 +205,6 @@ const Header: React.FC<HeaderProps> = ({ collapsed, style }) => {
                 display: 'flex',
                 justifyContent: collapsed ? 'flex-start' : 'flex-end',
                 alignItems: 'center',
-                ...style
             }}
         >
             {collapsed ? null : <div></div>}
@@ -212,6 +216,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, style }) => {
             >
                 <Space direction='horizontal' align='center' style={{cursor:'pointer'}}>
                     {generateAvatar(userName)}
+                    {/* Removed User Name and Role Display */}
                 </Space>
             </Dropdown>
 

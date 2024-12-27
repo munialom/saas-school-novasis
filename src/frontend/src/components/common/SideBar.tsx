@@ -1,3 +1,6 @@
+
+
+
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import {
@@ -52,10 +55,9 @@ const items: MenuItem[] = [
 interface SidebarProps {
     collapsed: boolean;
     onCollapse: (collapsed: boolean) => void;
-    style?: React.CSSProperties;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse, style }) => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
     const navigate = useNavigate();
     const { token, roles } = useAuth();
 
@@ -75,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse, style }) => {
     };
 
     return (
-        <Sider collapsible collapsed={collapsed} onCollapse={onCollapse} style={style}>
+        <Sider collapsible collapsed={collapsed} onCollapse={onCollapse}>
             <UserProfile
                 name={userName}
                 role={userRole}

@@ -3,13 +3,9 @@ import { Layout } from 'antd';
 
 const { Footer: AntFooter } = Layout;
 
-interface FooterProps {
-    style?: React.CSSProperties
-}
-
-const Footer: React.FC<FooterProps> = ({style}) => {
+const Footer: React.FC = () => {
     return (
-        <AntFooter style={{ textAlign: 'center', ...style}}>
+        <AntFooter style={{ textAlign: 'center' }}>
             My App © {new Date().getFullYear()}
         </AntFooter>
     );
