@@ -1,0 +1,113 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+/* Prevent transitions on initial render */
+.ant-layout,
+.ant-menu,
+.ant-breadcrumb,
+.ant-spin,
+.ant-content {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Apply animations only after a short delay */
+.ant-layout,
+.ant-menu,
+.ant-breadcrumb,
+.ant-spin,
+.ant-content {
+  transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out !important;
+}
+
+
+/* Optional: Use opacity transitions only during mount animations */
+.ant-layout.mount-animation,
+.ant-menu.mount-animation,
+.ant-breadcrumb.mount-animation,
+.ant-spin.mount-animation,
+.ant-content.mount-animation {
+  opacity: 0;
+}
+
+.ant-layout.mount-animation-active,
+.ant-menu.mount-animation-active,
+.ant-breadcrumb.mount-animation-active,
+.ant-spin.mount-animation-active,
+.ant-content.mount-animation-active {
+  opacity: 1;
+}
+
+.ant-spin {
+  transition: opacity 0.2s ease-in-out; /* Transition only opacity */
+}
+
+.ant-spin-spinning {
+  opacity: 1; /* Set opacity to 1 during animation */
+}
