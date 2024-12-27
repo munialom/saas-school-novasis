@@ -126,168 +126,14 @@
     </build>
 
 
- <!--   <profiles>
+    <profiles>
         <profile>
             <id>build-frontend</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                &lt;!&ndash; Make node version configurable &ndash;&gt;
-                <frontend.node.version>v20.18.1</frontend.node.version>
-                <frontend.npm.version>10.8.2</frontend.npm.version>
-                <frontend.dir>src/frontend</frontend.dir>
-                <frontend.build.dir>${frontend.dir}/dist</frontend.build.dir>
-                &lt;!&ndash; Define the output directory within the target folder &ndash;&gt;
-                <frontend.output.dir>${project.build.directory}/static</frontend.output.dir>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>1.15.1</version>
-                        <configuration>
-                            <nodeVersion>${frontend.node.version}</nodeVersion>
-                            <workingDirectory>${frontend.dir}</workingDirectory>
-                            &lt;!&ndash; Reuse node installation, faster build times &ndash;&gt;
-                            <installDirectory>target</installDirectory>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>install-node-and-npm</id>
-                                <goals>
-                                    <goal>install-node-and-npm</goal>
-                                </goals>
-                                <phase>initialize</phase>
-                                <configuration>
-                                    <nodeVersion>${frontend.node.version}</nodeVersion>
-                                    <npmVersion>${frontend.npm.version}</npmVersion>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>npm-install</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <phase>initialize</phase>
-                                <configuration>
-                                    <arguments>install</arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>npm-run-build</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <arguments>run build</arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-build-folder</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${frontend.build.dir}</directory>
-                                        </resource>
-                                    </resources>
-                                    &lt;!&ndash; Use configured directory &ndash;&gt;
-                                    <outputDirectory>${frontend.output.dir}</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>move-static-folder</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <target>
-                                        <move file="${frontend.output.dir}" todir="${project.build.outputDirectory}/static"></move>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>dev</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                &lt;!&ndash; Make node version configurable &ndash;&gt;
-                <frontend.node.version>v20.18.1</frontend.node.version>
-                <frontend.npm.version>10.8.2</frontend.npm.version>
-                <frontend.dir>src/frontend</frontend.dir>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>1.15.1</version>
-                        <configuration>
-                            <nodeVersion>${frontend.node.version}</nodeVersion>
-                            <workingDirectory>${frontend.dir}</workingDirectory>
-                            &lt;!&ndash; Reuse node installation, faster build times &ndash;&gt;
-                            <installDirectory>target</installDirectory>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>install-node-and-npm</id>
-                                <goals>
-                                    <goal>install-node-and-npm</goal>
-                                </goals>
-                                <phase>initialize</phase>
-                                <configuration>
-                                    <nodeVersion>${frontend.node.version}</nodeVersion>
-                                    <npmVersion>${frontend.npm.version}</npmVersion>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>npm-install</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <phase>initialize</phase>
-                                <configuration>
-                                    <arguments>install</arguments>
-                                </configuration>
-                            </execution>
-
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>-->
-
-    <profiles>
-        <profile>
-            <id>frontend</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
+                <!-- Corrected Node and npm versions -->
                 <frontend.node.version>v20.18.1</frontend.node.version>
                 <frontend.npm.version>10.8.2</frontend.npm.version>
                 <frontend.dir>src/frontend</frontend.dir>
@@ -303,9 +149,9 @@
                         <configuration>
                             <nodeVersion>${frontend.node.version}</nodeVersion>
                             <workingDirectory>${frontend.dir}</workingDirectory>
-                            <installDirectory>target</installDirectory>
                         </configuration>
                         <executions>
+
                             <execution>
                                 <id>install-node-and-npm</id>
                                 <goals>
@@ -332,7 +178,7 @@
                                 <goals>
                                     <goal>npm</goal>
                                 </goals>
-                                <phase>prepare-package</phase>
+                                <phase>generate-sources</phase>
                                 <configuration>
                                     <arguments>run build</arguments>
                                 </configuration>
@@ -343,7 +189,7 @@
                         <artifactId>maven-resources-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>copy-frontend-build</id>
+                                <id>copy-build-folder</id>
                                 <phase>process-classes</phase>
                                 <goals>
                                     <goal>copy-resources</goal>
