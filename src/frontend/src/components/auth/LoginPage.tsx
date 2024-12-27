@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Form, Input, Flex, Alert } from 'antd';
+import { LockOutlined, UserOutlined, EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
+import { Checkbox, Form, Input, Flex, Alert } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useAppState } from "../../context/AppState";
+import ButtonWithSpinner from '../../utils/ui/ButtonWithSpinner';
 
 const LoginPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const { login } = useAuth();
-    const { setLoading } = useAppState();
+    const { loading, setLoading } = useAppState();
     const navigate = useNavigate();
 
     const onFinish = async (values: any) => {
@@ -34,6 +36,11 @@ const LoginPage: React.FC = () => {
         }
     };
 
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
+
+
     return (
         <Flex justify="center" align="center" style={{ minHeight: '100vh', padding: '16px' }}>
             <div style={{maxWidth: 400, width: "100%"}}>
@@ -54,7 +61,12 @@ const LoginPage: React.FC = () => {
                         name="password"
                         rules={[{ required: true, message: 'Please input your password!' }]}
                     >
-                        <Input prefix={<LockOutlined />} type="password" placeholder="Password" />
+                        <Input.Password
+                            prefix={<LockOutlined />}
+                            placeholder="Password"
+                            iconRender={visible => (visible ? <EyeTwoTone onClick={togglePasswordVisibility}/> : <EyeInvisibleOutlined onClick={togglePasswordVisibility}/>)}
+                            type={passwordVisible ? 'text' : 'password'}
+                        />
                     </Form.Item>
                     <Form.Item>
                         <Flex justify="space-between" align="center">
@@ -66,9 +78,9 @@ const LoginPage: React.FC = () => {
                     </Form.Item>
 
                     <Form.Item>
-                        <Button block type="primary" htmlType="submit">
+                        <ButtonWithSpinner block type="primary" htmlType="submit" loading={loading}>
                             Log in
-                        </Button>
+                        </ButtonWithSpinner>
                     </Form.Item>
                 </Form>
             </div>
