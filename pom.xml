@@ -344,7 +344,7 @@
                         <executions>
                             <execution>
                                 <id>copy-frontend-build</id>
-                                <phase>process-resources</phase>
+                                <phase>process-classes</phase>
                                 <goals>
                                     <goal>copy-resources</goal>
                                 </goals>
