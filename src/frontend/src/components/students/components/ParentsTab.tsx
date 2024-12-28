@@ -52,8 +52,8 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                                 </Button>
                             ]}
                         >
-                            <Row gutter={16} style={{ width: '100%' }}>
-                                <Col span={8}>
+                            <Row gutter={[16, 16]} style={{ width: '100%' }}>
+                                <Col span={6}>
                                     <Form.Item
                                         label="Parent Type"
                                         rules={[{ required: true, message: 'Please select parent type' }]}
@@ -68,10 +68,9 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                                             onChange={(value) => handleParentTypeChange(index, value ? value[0] : null)}
                                             value={[item.parentType]}
                                         />
-
                                     </Form.Item>
                                 </Col>
-                                <Col span={16}>
+                                <Col span={6}>
                                     <Form.Item
                                         label="Full Name"
                                         rules={[{ required: true, message: 'Please enter parent full name' }]}
@@ -83,21 +82,19 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                                         />
                                     </Form.Item>
                                 </Col>
-
-                            </Row>
-                            <Row gutter={16} style={{ width: '100%' }}>
-                                <Col span={24}>
+                                <Col span={6}>
                                     <Form.Item
                                         label="Phone Numbers"
                                         rules={[{ required: true, message: 'Please enter phone number' }]}
                                     >
                                         <Space direction="vertical" style={{ width: '100%' }}>
                                             {item.parentDetails.phoneNumbers.map((phone, phoneIndex) => (
-                                                <Space key={phoneIndex} >
+                                                <Space key={phoneIndex} style={{alignItems: "center"}}>
                                                     <Input
                                                         placeholder="Enter phone number"
                                                         value={phone}
                                                         onChange={(e) => handleParentDetailsChange(index, 'phoneNumbers', item.parentDetails.phoneNumbers.map((p, i) => i === phoneIndex ? e.target.value : p))}
+                                                        style={{flex:1}}
                                                     />
                                                     <Button type='text' onClick={() => handleRemovePhone(index, phoneIndex)} >Remove</Button>
                                                 </Space>
@@ -106,10 +103,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                                         </Space>
                                     </Form.Item>
                                 </Col>
-
-                            </Row>
-                            <Row gutter={16} style={{ width: '100%' }}>
-                                <Col span={24}>
+                                <Col span={6}>
                                     <Form.Item
                                         label="Email Address"
                                         rules={[{ required: false, message: 'Please enter email address' }]}
@@ -125,7 +119,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                         </List.Item>
                     )}
                 />
-                <Button type="dashed" onClick={handleAddParent} style={{ width: '100%' }} icon={<PlusOutlined />}>
+                <Button type="dashed" onClick={handleAddParent} style={{ width: '100%' }} icon={<PlusOutlined/>}>
                     Add Parent Data
                 </Button>
                 <Form.Item>
