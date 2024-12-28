@@ -22,7 +22,7 @@ import ClassForm from './components/ClassForm';
 import StreamForm from './components/StreamForm';
 import BulkUpload from './components/BulkUpload';
 
-import type { Student } from '../../lib/dummyData';
+import type { Student } from '../../lib/types';
 import type { MenuProps } from 'antd';
 import StreamList from "./components/StreamList.tsx";
 
@@ -47,17 +47,33 @@ const StudentAdmission: React.FC = () => {
     const handleAdmissionSuccess = () => {
         setShowAdmissionForm(false);
         // Refresh student list if needed
+        if(activeTabKey === 'student-records') {
+            // Force a re-render of the student table by updating the activeTabKey
+            setActiveTabKey('student-records-refreshed');
+            setTimeout(() => setActiveTabKey('student-records'), 0); // Reset immediately to the previous key
+        }
     };
 
     const handleClassSuccess = () => {
         setShowClassForm(false);
         // Refresh class list if needed
+        if (activeTabKey === 'class-lists') {
+            setActiveTabKey('class-lists-refreshed');
+            setTimeout(() => setActiveTabKey('class-lists'), 0); // Reset immediately to the previous key
+        }
+
     };
 
     const handleStreamSuccess = () => {
         setShowStreamForm(false);
         // Refresh stream list if needed
+        if(activeTabKey === 'streams-lists') {
+            setActiveTabKey('streams-lists-refreshed');
+            setTimeout(() => setActiveTabKey('streams-lists'), 0);
+        }
+
     };
+
 
     const menuItems: MenuProps['items'] = [
         {

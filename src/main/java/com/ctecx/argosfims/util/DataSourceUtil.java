@@ -22,8 +22,7 @@ public final class DataSourceUtil {
         ds.setPassword(masterTenant.getPassword());
         ds.setJdbcUrl(masterTenant.getUrl());
         ds.setDriverClassName(masterTenant.getDriverClass());
-        // HikariCP settings - could come from the master_tenant table but
-        // hardcoded here for brevity
+
         // Maximum waiting time for a connection from the pool
         ds.setConnectionTimeout(20000);
         // Minimum number of idle connections in the pool

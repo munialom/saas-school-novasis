@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Drawer, Form, Input, Space, Switch } from 'antd';
-
-import type { Stream } from '../../../lib/dummyData';
+import { Button, Drawer, Form, Input, Space, Switch, message } from 'antd';
 import LoadingState from '../../../utils/ui/LoadingState';
+import { createStream } from '../../../lib/api';
 
 interface StreamFormProps {
-    onSuccess?: (newStream: Stream) => void;
+    onSuccess?: () => void;
     open: boolean;
     onClose: () => void;
 }
@@ -18,16 +17,14 @@ const StreamForm: React.FC<StreamFormProps> = ({ onSuccess, open, onClose }) => 
         try {
             setLoading(true);
             const values = await form.validateFields();
-            const newStream: Stream = {
-                id: Date.now(),
-                streamName: values.streamName,
-                status: values.status || false
-            }
-            if (onSuccess) onSuccess(newStream);
+            await createStream({ streamName: values.streamName, status: values.status || false });
+            message.success('Stream added successfully');
+            if (onSuccess) onSuccess();
             form.resetFields();
             setTimeout(onClose, 1000);
         } catch (error) {
             console.log(error)
+            message.error('Failed to save stream. Please check your input and try again.');
             // Error is handled by axios interceptor
         } finally {
             setLoading(false);

@@ -1,18 +1,41 @@
-import React, { useState } from 'react';
-import { Table, Card, Switch } from 'antd';
-import type { Stream } from '../../../lib/dummyData';
-
-import { dummyStreams } from '../../../lib/dummyData';
-
+import React, { useState, useEffect } from 'react';
+import { Table, Card, Tag } from 'antd';
 import LoadingState from '../../../utils/ui/LoadingState';
+import { getStreams } from '../../../lib/api';
+
+
+interface Stream {
+    id: number;
+    streamName: string;
+    status: boolean;
+}
+
 const StreamList: React.FC = () => {
-    const [streams] = useState<Stream[]>(dummyStreams);
-    const [loading] = useState(false);
+    const [streams, setStreams] = useState<Stream[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleToggleStatus = async (id: number) => {
-        console.log('toggling status for: ' + id);
-    };
+    useEffect(() => {
+        const fetchStreams = async () => {
+            try {
+                setLoading(true);
+                const response = await getStreams();
+                if (response && response.data && Array.isArray(response.data)) {
+                    const formattedStreams = response.data.map((item: any) => ({
+                        id: item.Id,
+                        streamName: item.StreamName,
+                        status: item.Status === 'Active',
+                    }));
+                    setStreams(formattedStreams);
+                }
 
+            } catch (error) {
+                console.error("Error fetching streams:", error)
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStreams();
+    }, []);
     const columns = [
         {
             title: 'Stream Name',
@@ -24,13 +47,10 @@ const StreamList: React.FC = () => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: boolean, record: Stream) => (
-                <Switch
-                    checked={status}
-                    onChange={() => handleToggleStatus(record.id)}
-                    checkedChildren="Active"
-                    unCheckedChildren="Inactive"
-                />
+            render: (status: boolean) => ( // Removed unused 'record' parameter
+                <Tag bordered={false} color={status ? "success" : "error"}>
+                    {status ? 'Active' : 'Inactive'}
+                </Tag>
             ),
         }
     ];

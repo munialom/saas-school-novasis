@@ -11,7 +11,8 @@ import {
     CheckCircleOutlined,
     CloseCircleOutlined
 } from '@ant-design/icons';
-import { Student } from '../../../lib/dummyData';
+import {  Student } from '../../../lib/types';
+
 
 const { Title, Text } = Typography;
 

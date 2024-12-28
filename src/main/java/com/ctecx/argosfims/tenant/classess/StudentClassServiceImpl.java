@@ -23,35 +23,7 @@ public class StudentClassServiceImpl implements StudentClassService {
         return studentClassRepository.save(studentClass);
     }
 
-    @Override
-    public StudentClass updateClass(Integer id, StudentClass studentClass) {
-        StudentClass existingClass = getClassById(id);
-        existingClass.setClassName(studentClass.getClassName());
-        existingClass.setStatus(studentClass.isStatus());
-        return studentClassRepository.save(existingClass);
-    }
 
-    @Override
-    public StudentClass getClassById(Integer id) {
-        return studentClassRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Class not found with id: " + id));
-    }
 
-    @Override
-    public List<StudentClass> getAllClasses() {
-        return studentClassRepository.findAll();
-    }
 
-    @Override
-    public void deleteClass(Integer id) {
-        StudentClass studentClass = getClassById(id);
-        studentClassRepository.delete(studentClass);
-    }
-
-    @Override
-    public StudentClass toggleStatus(Integer id) {
-        StudentClass studentClass = getClassById(id);
-        studentClass.setStatus(!studentClass.isStatus());
-        return studentClassRepository.save(studentClass);
-    }
 }

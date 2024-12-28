@@ -22,35 +22,4 @@ public class StudentStreamServiceImpl implements StudentStreamService {
         return studentStreamRepository.save(studentStream);
     }
 
-    @Override
-    public StudentStream updateStream(Integer id, StudentStream studentStream) {
-        StudentStream existingStream = getStreamById(id);
-        existingStream.setStreamName(studentStream.getStreamName());
-        existingStream.setStatus(studentStream.isStatus());
-        return studentStreamRepository.save(existingStream);
-    }
-
-    @Override
-    public StudentStream getStreamById(Integer id) {
-        return studentStreamRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Stream not found with id: " + id));
-    }
-
-    @Override
-    public List<StudentStream> getAllStreams() {
-        return studentStreamRepository.findAll();
-    }
-
-    @Override
-    public void deleteStream(Integer id) {
-        StudentStream studentStream = getStreamById(id);
-        studentStreamRepository.delete(studentStream);
-    }
-
-    @Override
-    public StudentStream toggleStatus(Integer id) {
-        StudentStream studentStream = getStreamById(id);
-        studentStream.setStatus(!studentStream.isStatus());
-        return studentStreamRepository.save(studentStream);
-    }
 }

@@ -2,6 +2,7 @@ package com.ctecx.argosfims.tenant.students;
 
 import com.ctecx.argosfims.tenant.classess.StudentClass;
 import com.ctecx.argosfims.tenant.streams.StudentStream;
+import com.ctecx.argosfims.util.AuditableBase;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Table(name = "students")
 @Entity
-public class Student {
+public class Student extends AuditableBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

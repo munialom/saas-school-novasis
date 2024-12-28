@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Drawer, Form, Input, Space, Switch } from 'antd';
+import { Button, Drawer, Form, Input, Space, Switch, message } from 'antd';
 import LoadingState from '../../../utils/ui/LoadingState';
-import type { Class } from '../../../lib/dummyData';
+import { createClass } from '../../../lib/api';
 
 interface ClassFormProps {
-    onSuccess?: (newClass: Class) => void;
+    onSuccess?: () => void;
     open: boolean;
     onClose: () => void;
 }
@@ -17,16 +17,14 @@ const ClassForm: React.FC<ClassFormProps> = ({ onSuccess, open, onClose }) => {
         try {
             setLoading(true);
             const values = await form.validateFields();
-            const newClass: Class = {
-                id: Date.now(),
-                className: values.className,
-                status: values.status || false
-            };
-            if (onSuccess) onSuccess(newClass);
+            await createClass({ className: values.className, status: values.status || false });
+            message.success('Class added successfully');
+            if (onSuccess) onSuccess();
             form.resetFields();
             setTimeout(onClose, 1000);
         } catch (error) {
             console.log(error)
+            message.error('Failed to save class. Please check your input and try again.');
             // Error is handled by axios interceptor
         } finally {
             setLoading(false);

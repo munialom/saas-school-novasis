@@ -1,5 +1,6 @@
 package com.ctecx.argosfims.tenant.classess;
 
+import com.ctecx.argosfims.util.AuditableBase;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Table(name = "classes")
-public class StudentClass {
+public class StudentClass extends AuditableBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

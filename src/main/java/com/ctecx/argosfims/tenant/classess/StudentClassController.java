@@ -1,12 +1,12 @@
 package com.ctecx.argosfims.tenant.classess;
 
 
-import com.ctecx.argosfims.security.RequestAuthorization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/classes")
@@ -24,31 +24,6 @@ public class StudentClassController {
         return ResponseEntity.ok(studentClassService.createClass(studentClass));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<StudentClass> updateClass(
-            @PathVariable Integer id,
-            @RequestBody StudentClass studentClass) {
-        return ResponseEntity.ok(studentClassService.updateClass(id, studentClass));
-    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<StudentClass> getClassById(@PathVariable Integer id) {
-        return ResponseEntity.ok(studentClassService.getClassById(id));
-    }
-    @RequestAuthorization
-    @GetMapping
-    public ResponseEntity<List<StudentClass>> getAllClasses() {
-        return ResponseEntity.ok(studentClassService.getAllClasses());
-    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClass(@PathVariable Integer id) {
-        studentClassService.deleteClass(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{id}/toggle-status")
-    public ResponseEntity<StudentClass> toggleStatus(@PathVariable Integer id) {
-        return ResponseEntity.ok(studentClassService.toggleStatus(id));
-    }
 }

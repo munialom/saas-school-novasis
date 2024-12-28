@@ -2,7 +2,6 @@ package com.ctecx.argosfims.util;
 
 import com.ctecx.argosfims.tenant.users.User;
 import com.ctecx.argosfims.tenant.users.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,12 +11,10 @@ import java.util.Optional;
 
 public class AuditorAwareImpl implements AuditorAware<String> {
 
-    private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
 
     public AuditorAwareImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -33,13 +30,7 @@ public class AuditorAwareImpl implements AuditorAware<String> {
                 User user = userRepository.findByUserName(userDetails.getUsername());
 
                 if (user != null) {
-                    UserAudit userAudit = new UserAudit(
-                            user.getUserId(),
-                            user.getUserName(),
-                            user.getFullName()
-                    );
-                    // Convert to JSON string
-                    return Optional.of(objectMapper.writeValueAsString(userAudit));
+                    return Optional.of(user.getFullName());
                 }
             }
 

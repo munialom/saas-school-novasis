@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, Space, Tag, Tooltip, Card } from 'antd';
-import { SearchOutlined, EyeOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { dummyStudents, dummyClasses, dummyStreams } from '../../../lib/dummyData';
-import type { Student, Class, Stream } from '../../../lib/dummyData';
+import { SearchOutlined, EyeOutlined, } from '@ant-design/icons';
 
 import type { ColumnsType } from 'antd/es/table';
 import LoadingState from '../../../utils/ui/LoadingState';
+import { getStudents } from '../../../lib/api';
+import { Student } from '../../../lib/types';
+
 
 interface StudentTableProps {
     onViewStudent: (student: Student) => void;
@@ -13,16 +14,70 @@ interface StudentTableProps {
 
 const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-    const [students] = useState<Student[]>(dummyStudents);
-    const [loading] = useState(false);
-    const [classes] = useState<Class[]>(dummyClasses);
-    const [streams] = useState<Stream[]>(dummyStreams);
+    const [students, setStudents] = useState<Student[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [classes, setClasses] = useState<any[]>([]);
+    const [streams, setStreams] = useState<any[]>([]);
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true)
+                const response = await getStudents();
+                if (response && response.data && Array.isArray(response.data)) {
+                    const formattedStudents = response.data.map((item: any) => ({
+                        id: item.Id,
+                        admissionNumber: item.AdmissionNumber,
+                        fullName: item.FullName,
+                        gender: item.Gender,
+                        location: item.Location,
+                        admission: item.Admission,
+                        mode: item.Mode,
+                        status: item.Status === 'Active',
+                        yearOf: item.YearOf,
+                        studentClass: {
+                            className: item.ClassName
+                        },
+                        studentStream: {
+                            streamName: item.StreamName
+                        },
+
+                    }));
+                    setStudents(formattedStudents);
+                    //Extract unique classes and streams for filtering
+                    const classMap: Record<string, any> = {};
+                    const streamMap: Record<string, any> = {};
+
+                    formattedStudents.forEach((student: Student) => { // Explicitly type 'student' as Student
+                        if (student.studentClass && student.studentClass.className) {
+                            classMap[student.studentClass.className] = {id: student.studentClass.className, className: student.studentClass.className };
+                        }
+
+                        if (student.studentStream && student.studentStream.streamName) {
+                            streamMap[student.studentStream.streamName] = { id: student.studentStream.streamName,streamName: student.studentStream.streamName };
+                        }
+                    });
+                    setClasses(Object.values(classMap));
+                    setStreams(Object.values(streamMap));
+                }
+
+
+            }catch (error) {
+                console.error('Error fetching students:', error);
+            } finally {
+                setLoading(false)
+            }
+        };
+
+        fetchData();
+    }, []);
 
 
     const handleToggleStatus = async (record: Student) => {
-        //dummy data so not going to do anything
         console.log('toggled status of: ' + record.fullName)
     };
+
 
     const rowSelection = {
         selectedRowKeys,
@@ -76,8 +131,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             render: (studentClass, record) => (
                 <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentClass?.className}</span>
             ),
-            filters: classes.map(c => ({ text: c.className, value: c.id })),
-            onFilter: (value, record) => record.studentClass.id === value,
+            filters: classes.map(c => ({ text: c.className, value: c.className })),
+            onFilter: (value, record) => record.studentClass.className === value,
         },
         {
             title: 'Stream',
@@ -87,8 +142,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             render: (studentStream, record) => (
                 <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentStream?.streamName}</span>
             ),
-            filters: streams.map(s => ({ text: s.streamName, value: s.id })),
-            onFilter: (value, record) => record.studentStream.id === value,
+            filters: streams.map(s => ({ text: s.streamName, value: s.streamName })),
+            onFilter: (value, record) => record.studentStream.streamName === value,
         },
         {
             title: 'Gender',
@@ -126,15 +181,13 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             render: (status, record) => (
                 <Tooltip title={`Click to ${status ? 'deactivate' : 'activate'}`}>
                     <Tag
-                        color={status ? '#52c41a' : '#ff4d4f'}
+                        bordered={false}
+                        color={status ? "success" : "error"}
                         style={{ cursor: 'pointer' }}
                         onClick={() => handleToggleStatus(record)}
+
                     >
-                        {status ? (
-                            <><CheckCircleOutlined /> Active</>
-                        ) : (
-                            <><CloseCircleOutlined /> Inactive</>
-                        )}
+                        {status ? 'Active' : 'Inactive'}
                     </Tag>
                 </Tooltip>
             ),

@@ -1,69 +1,39 @@
 package com.ctecx.argosfims.tenant.students;
 
-import com.ctecx.argosfims.tenant.classess.StudentClassService;
-import com.ctecx.argosfims.tenant.streams.StudentStreamService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ctecx.argosfims.tenant.classess.StudentClass;
+import com.ctecx.argosfims.tenant.school.SchoolService;
+import com.ctecx.argosfims.tenant.streams.StudentStream;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository studentRepository;
-    private final StudentClassService studentClassService;
-    private final StudentStreamService studentStreamService;
+    private final SchoolService schoolService;
 
-    @Autowired
-    public StudentServiceImpl(
-            StudentRepository studentRepository,
-            StudentClassService studentClassService,
-            StudentStreamService studentStreamService) {
-        this.studentRepository = studentRepository;
-        this.studentClassService = studentClassService;
-        this.studentStreamService = studentStreamService;
-    }
 
     @Override
     public Student createStudent(StudentDTO studentDTO) {
         try {
-            if (studentRepository.existsByAdmissionNumber(studentDTO.getAdmissionNumber())) {
+            if (schoolService.searchStudentByAdmission(studentDTO.getAdmissionNumber()).size() > 0) {
                 throw new ResponseStatusException(
                         HttpStatus.CONFLICT,
                         "Admission number already exists: " + studentDTO.getAdmissionNumber()
                 );
             }
-
             Student student = new Student();
             mapDTOToStudent(studentDTO, student);
             return studentRepository.save(student);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Invalid enum value: " + e.getMessage()
-            );
-        }
-    }
-
-    @Override
-    public Student updateStudent(Long id, StudentDTO studentDTO) {
-        try {
-            Student existingStudent = getStudentById(id);
-
-            if (!existingStudent.getAdmissionNumber().equals(studentDTO.getAdmissionNumber()) &&
-                    studentRepository.existsByAdmissionNumber(studentDTO.getAdmissionNumber())) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "Admission number already exists: " + studentDTO.getAdmissionNumber()
-                );
-            }
-
-            mapDTOToStudent(studentDTO, existingStudent);
-            return studentRepository.save(existingStudent);
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -79,8 +49,31 @@ public class StudentServiceImpl implements StudentService {
             student.setAdmissionNumber(dto.getAdmissionNumber());
             student.setGender(dto.getGender());
             student.setLocation(dto.getLocation());
-            student.setStudentClass(studentClassService.getClassById(dto.getClassId()));
-            student.setStudentStream(studentStreamService.getStreamById(dto.getStreamId()));
+
+
+            // Fetch and set the Class entity using SchoolService
+            Optional.ofNullable(dto.getClassId())
+                    .flatMap(classId -> schoolService.getClassById(classId).stream().findFirst())
+                    .ifPresentOrElse(classMap -> {
+                                student.setStudentClass(mapClass(classMap));
+                            },
+                            () -> {
+                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid class ID " + dto.getClassId());
+                            }
+                    );
+
+
+            // Fetch and set the Stream entity using SchoolService
+            Optional.ofNullable(dto.getStreamId())
+                    .flatMap(streamId -> schoolService.getStreamById(streamId).stream().findFirst())
+                    .ifPresentOrElse(streamMap -> {
+                                student.setStudentStream(mapStream(streamMap));
+                            },
+                            () -> {
+                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stream ID " + dto.getStreamId());
+                            }
+                    );
+
             student.setStatus(dto.isStatus());
 
             // Handle enum conversions with validation
@@ -90,7 +83,7 @@ public class StudentServiceImpl implements StudentService {
             Admission admission = Admission.fromString(dto.getAdmission().toString());
             student.setAdmission(admission);
 
-            student.setYearOf(dto.getYearOf());
+            student.setYearOf(Integer.valueOf(String.valueOf(dto.getYearOf())));
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -99,49 +92,18 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
-    @Override
-    public Student getStudentById(Long id) {
-        return studentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Student not found with id: " + id
-                ));
+    private StudentClass mapClass(Map<String, Object> classMap) {
+        StudentClass studentClass = new StudentClass();
+        studentClass.setId((Integer) classMap.get("Id"));
+        studentClass.setClassName((String) classMap.get("ClassName"));
+        return studentClass;
     }
 
-    @Override
-    public Student getStudentByAdmissionNumber(String admissionNumber) {
-        return studentRepository.findByAdmissionNumber(admissionNumber)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Student not found with admission number: " + admissionNumber
-                ));
+    private StudentStream mapStream(Map<String, Object> streamMap) {
+        StudentStream studentStream = new StudentStream();
+        studentStream.setId((Integer) streamMap.get("Id"));
+        studentStream.setStreamName((String) streamMap.get("StreamName"));
+        return studentStream;
     }
 
-    @Override
-    public List<Student> getAllStudents() {
-        return studentRepository.findAll();
-    }
-
-    @Override
-    public List<Student> getStudentsByClass(Integer classId) {
-        return studentRepository.findByStudentClassId(classId);
-    }
-
-    @Override
-    public List<Student> getStudentsByStream(Integer streamId) {
-        return studentRepository.findByStudentStreamId(streamId);
-    }
-
-    @Override
-    public void deleteStudent(Long id) {
-        Student student = getStudentById(id);
-        studentRepository.delete(student);
-    }
-
-    @Override
-    public Student toggleStatus(Long id) {
-        Student student = getStudentById(id);
-        student.setStatus(!student.isStatus());
-        return studentRepository.save(student);
-    }
 }
