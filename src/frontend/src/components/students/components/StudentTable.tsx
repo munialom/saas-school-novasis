@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Space, Tag, Tooltip, Card } from 'antd';
+import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert } from 'antd';
 import { SearchOutlined, EyeOutlined, } from '@ant-design/icons';
 
 import type { ColumnsType } from 'antd/es/table';
-import LoadingState from '../../../utils/ui/LoadingState';
 import { getStudents } from '../../../lib/api';
 import { Student } from '../../../lib/types';
 
@@ -18,6 +17,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const [loading, setLoading] = useState(true);
     const [classes, setClasses] = useState<any[]>([]);
     const [streams, setStreams] = useState<any[]>([]);
+    const [alert, setAlert] = useState<{ type: 'success' | 'error' | null, message: string | null }>({
+        type: null,
+        message: null
+    });
 
 
     useEffect(() => {
@@ -65,6 +68,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
 
             }catch (error) {
                 console.error('Error fetching students:', error);
+                setAlert({type:'error', message:'Failed to load student data'})
             } finally {
                 setLoading(false)
             }
@@ -72,7 +76,9 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
 
         fetchData();
     }, []);
-
+    const onCloseAlert = () => {
+        setAlert({ type: null, message: null });
+    };
 
     const handleToggleStatus = async (record: Student) => {
         console.log('toggled status of: ' + record.fullName)
@@ -216,28 +222,38 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
 
     return (
         <Card>
+            {alert.type && alert.message && (
+                <Alert
+                    message={alert.message}
+                    type={alert.type}
+                    showIcon
+                    closable
+                    onClose={onCloseAlert}
+                    style={{ marginBottom: 16 }}
+                />
+            )}
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <LoadingState loading={loading}>
-                    <Table
-                        columns={columns}
-                        dataSource={students}
-                        rowSelection={rowSelection}
-                        rowKey="id"
-                        size="small"
-                        scroll={{ x: 'max-content' }}
-                        pagination={{
-                            defaultPageSize: 10,
-                            showSizeChanger: true,
-                            showQuickJumper: true,
-                            showTotal: (total) => `Total ${total} students`,
-                            size: 'small'
-                        }}
-                        rowClassName={(record) => !record.status ? 'table-row-inactive' : ''}
-                        style={{
-                            backgroundColor: 'white',
-                        }}
-                    />
-                </LoadingState>
+                <Table
+                    columns={columns}
+                    dataSource={students}
+                    rowSelection={rowSelection}
+                    rowKey="id"
+                    size="small"
+                    loading={loading}
+                    locale={{ emptyText: 'No Students Data' }} // Customize empty text
+                    scroll={{ x: 'max-content' }}
+                    pagination={{
+                        defaultPageSize: 10,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        showTotal: (total) => `Total ${total} students`,
+                        size: 'small'
+                    }}
+                    rowClassName={(record) => !record.status ? 'table-row-inactive' : ''}
+                    style={{
+                        backgroundColor: 'white',
+                    }}
+                />
             </Space>
         </Card>
     );
