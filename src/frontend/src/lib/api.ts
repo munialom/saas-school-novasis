@@ -71,6 +71,18 @@ export const saveStudent = async (student: StudentDTO): Promise<any> => {
         throw e;
     }
 };
+export const updateStudent = async (student: any): Promise<any> => {
+    try {
+        return await axios.put(
+            `${getApiBaseUrl()}/api/v1/school/students`,
+            student,
+            getAuthConfig()
+        );
+    } catch (e) {
+        throw e;
+    }
+};
+
 
 export const getClasses = async (): Promise<any> => {
     try {

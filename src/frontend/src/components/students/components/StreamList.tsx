@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Tag } from 'antd';
-import LoadingState from '../../../utils/ui/LoadingState';
+import { Table, Card, Tag, Alert } from 'antd';
 import { getStreams } from '../../../lib/api';
-
 
 interface Stream {
     id: number;
     streamName: string;
     status: boolean;
+    createdAt: string;
+    createdBy: string;
+    updatedAt: string;
+    updatedBy: string;
 }
 
 const StreamList: React.FC = () => {
     const [streams, setStreams] = useState<Stream[]>([]);
     const [loading, setLoading] = useState(true);
+    const [alert, setAlert] = useState<{ type: 'success' | 'error' | null, message: string | null }>({
+        type: null,
+        message: null
+    });
 
     useEffect(() => {
         const fetchStreams = async () => {
@@ -24,18 +30,27 @@ const StreamList: React.FC = () => {
                         id: item.Id,
                         streamName: item.StreamName,
                         status: item.Status === 'Active',
+                        createdAt: item.CreatedAt,
+                        createdBy: item.CreatedBy,
+                        updatedAt: item.UpdatedAt,
+                        updatedBy: item.UpdatedBy,
                     }));
                     setStreams(formattedStreams);
                 }
 
             } catch (error) {
                 console.error("Error fetching streams:", error)
+                setAlert({type:'error', message:'Failed to load streams'})
+
             } finally {
                 setLoading(false);
             }
         };
         fetchStreams();
     }, []);
+    const onCloseAlert = () => {
+        setAlert({ type: null, message: null });
+    };
     const columns = [
         {
             title: 'Stream Name',
@@ -47,29 +62,58 @@ const StreamList: React.FC = () => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: boolean) => ( // Removed unused 'record' parameter
+            render: (status: boolean) => (
                 <Tag bordered={false} color={status ? "success" : "error"}>
                     {status ? 'Active' : 'Inactive'}
                 </Tag>
             ),
-        }
+        },
+        {
+            title: 'Created At',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+        },
+        {
+            title: 'Created By',
+            dataIndex: 'createdBy',
+            key: 'createdBy',
+        },
+        {
+            title: 'Updated At',
+            dataIndex: 'updatedAt',
+            key: 'updatedAt',
+        },
+        {
+            title: 'Updated By',
+            dataIndex: 'updatedBy',
+            key: 'updatedBy',
+        },
     ];
 
     return (
         <Card>
-            <LoadingState loading={loading}>
-                <Table
-                    columns={columns}
-                    dataSource={streams}
-                    rowKey="id"
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Total ${total} items`,
-                    }}
-                    size="small"
+            {alert.type && alert.message && (
+                <Alert
+                    message={alert.message}
+                    type={alert.type}
+                    showIcon
+                    closable
+                    onClose={onCloseAlert}
+                    style={{ marginBottom: 16 }}
                 />
-            </LoadingState>
+            )}
+            <Table
+                columns={columns}
+                dataSource={streams}
+                rowKey="id"
+                loading={loading}
+                pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showTotal: (total) => `Total ${total} items`,
+                }}
+                size="small"
+            />
         </Card>
     );
 };
