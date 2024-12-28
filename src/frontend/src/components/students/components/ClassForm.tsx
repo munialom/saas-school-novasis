@@ -22,9 +22,8 @@ const ClassForm: React.FC<ClassFormProps> = ({ onSuccess, open, onClose }) => {
             const values = await form.validateFields();
             await createClass({ className: values.className, status: values.status || false });
             setAlert({ type: 'success', message: 'Class added successfully' });
-            if (onSuccess) onSuccess();
             form.resetFields();
-            setTimeout(onClose, 1000);
+            if (onSuccess) onSuccess();
         } catch (error) {
             console.log(error)
             setAlert({ type: 'error', message: 'Failed to save class. Please check your input and try again.' });

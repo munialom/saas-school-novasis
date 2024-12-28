@@ -5,7 +5,6 @@ import {
     Row,
     Col,
     Typography,
-
     Button,
     Space,
     Drawer,
@@ -119,8 +118,8 @@ const AdmissionForm: React.FC<AdmissionFormProps> = ({ onSuccess, onCancel, open
             }
             await saveStudent(studentData);
             setAlert({ type: 'success', message: 'Student added successfully' });
-            onSuccess?.();
             form.resetFields();
+            if (onSuccess) onSuccess();
         } catch (error) {
             console.error('Error submitting form:', error);
             setAlert({ type: 'error', message: 'Failed to save student. Please check your input and try again.' });
