@@ -20,6 +20,12 @@ public class CustomSchoolRepositoryImpl implements CustomSchoolRepository {
 
 
     @Override
+    public List<Map<String, Object>> getStudentParents(int id) {
+
+        return getJdbcTemplate().queryForList("CALL GetStudentParents(?)", id);
+    }
+
+    @Override
     public List<Map<String, Object>> getAllClasses() {
         return getJdbcTemplate().queryForList("CALL sp_GetClasses()");
     }

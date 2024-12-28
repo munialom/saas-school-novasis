@@ -32,11 +32,24 @@ export interface StudentDTO {
     mode: string | null;
     yearOf: number | null;
 }
+
 export interface ParentDetails {
     fullName: string;
     phoneNumbers: string[];
     emailAddress: string;
 }
+
+export interface ParentResponse {
+    id: number;
+    created_date: string;
+    created_by: string;
+    last_modified_date: string;
+    modified_by: string;
+    parentDetails: string;
+    parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
+    student_id: number
+}
+
 export interface Class {
     id: number;
     className: string;

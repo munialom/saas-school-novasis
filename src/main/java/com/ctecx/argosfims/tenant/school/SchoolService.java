@@ -14,6 +14,11 @@ public class SchoolService {
 
     private final CustomSchoolRepository schoolRepository;
 
+
+    public List<Map<String, Object>> getStudentParents(int id) {
+        return schoolRepository.getStudentParents(id);
+    }
+
     public List<Map<String, Object>> getAllClasses() {
         return schoolRepository.getAllClasses();
     }

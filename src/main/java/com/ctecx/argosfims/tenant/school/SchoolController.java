@@ -14,6 +14,14 @@ public class SchoolController {
 
     private final SchoolService schoolService;
 
+
+
+    @GetMapping("/parents/{id}")
+    public ResponseEntity<List<Map<String, Object>>> getStudentsParents(@PathVariable int id) {
+        List<Map<String, Object>> student = schoolService.getStudentParents(id);
+        return !student.isEmpty() ? ResponseEntity.ok(student) : ResponseEntity.notFound().build();
+    }
+
     @GetMapping("/classes")
     public ResponseEntity<List<Map<String, Object>>> getAllClasses() {
         return ResponseEntity.ok(schoolService.getAllClasses());

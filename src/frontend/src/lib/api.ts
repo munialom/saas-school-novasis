@@ -142,3 +142,13 @@ export const createStream = async (stream: any): Promise<any> => {
         throw e;
     }
 };
+
+// New API call to fetch student parents
+export const getStudentParents = async (studentId: number): Promise<any> => {
+    try {
+        return await axios.get(`${getApiBaseUrl()}/api/v1/school/parents/${studentId}`, getAuthConfig());
+    } catch (e) {
+        console.log(e)
+        return null
+    }
+};

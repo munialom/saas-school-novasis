@@ -1,42 +1,150 @@
-import React from 'react';
-import { Card, Row, Col, Form, Input, Button, List, Space, Cascader } from 'antd';
-import { ParentDetails } from '../../../lib/types';
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Form, Input, Button, List, Space, Cascader, Alert as AntdAlert, Descriptions } from 'antd';
+import { ParentDetails, ParentResponse } from '../../../lib/types';
 import { PlusOutlined } from '@ant-design/icons';
+import { saveParents, getStudentParents } from '../../../lib/api';
+
 
 interface ParentsTabProps {
-    parents: {
-        parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
-        parentDetails: ParentDetails
-    }[];
+    studentId: number | undefined
     loading: boolean;
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     parentForm: any
-    handleParentDetailsChange: (index: number, field: string, value: any) => void;
-    handleParentTypeChange: (index: number, value: any) => void;
-    addPhoneNumber: (index: number) => void;
-    handleRemovePhone: (parentIndex: number, phoneIndex: number) => void;
-    handleSaveParents: () => void;
-    handleAddParent: () => void;
-    handleRemoveParent: (index: number) => void;
+    setAlert: React.Dispatch<React.SetStateAction<{
+        type: 'success' | 'error' | null;
+        message: string | null;
+    }>>;
+    alert: { type: 'success' | 'error' | null, message: string | null }
 }
 
 const ParentsTab: React.FC<ParentsTabProps> = ({
-                                                   parents,
+                                                   studentId,
                                                    loading,
+                                                   setLoading,
                                                    parentForm,
-                                                   handleParentDetailsChange,
-                                                   handleParentTypeChange,
-                                                   addPhoneNumber,
-                                                   handleRemovePhone,
-                                                   handleSaveParents,
-                                                   handleAddParent,
-                                                   handleRemoveParent
+                                                   setAlert,
+                                                   alert,
                                                }) => {
-    return (
-        <Card title="Add Parents Details" >
-            <Form
-                form={parentForm}
-                layout="vertical"
-            >
+    const [parents, setParents] = useState< {
+        parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
+        parentDetails: ParentDetails
+    }[]>([]);
+    const [existingParentsData, setExistingParentsData] = useState<ParentResponse[] | null>(null);
+
+    useEffect(() => {
+        const fetchParentsData = async () => {
+            if(studentId){
+                try {
+                    const response = await getStudentParents(studentId);
+                    if(response && response.data) {
+                        setExistingParentsData(response.data);
+                    }
+                } catch (error) {
+                    console.log('Error fetching parents data:', error)
+                    setAlert({type: 'error', message: 'Failed to load existing parents'})
+                }
+            }
+
+        };
+
+        fetchParentsData();
+    }, [studentId,setAlert]);
+    useEffect(() => {
+        if(existingParentsData) {
+            const initialParents = existingParentsData.map((parent) => ({
+                parentType: parent.parentType,
+                parentDetails: JSON.parse(parent.parentDetails)
+            }))
+            setParents(initialParents)
+        }
+
+    }, [existingParentsData]);
+    const handleParentDetailsChange = (index: number, field: string, value: any) => {
+        setParents(prevParents => {
+            const updatedParents = [...prevParents];
+            if (field === 'phoneNumbers') {
+                updatedParents[index].parentDetails.phoneNumbers = value;
+            } else {
+                updatedParents[index].parentDetails = {
+                    ...updatedParents[index].parentDetails,
+                    [field]: value
+                };
+            }
+            return updatedParents;
+        });
+    };
+
+    const handleParentTypeChange = (index: number, value: any) => {
+        setParents(prevParents => {
+            const updatedParents = [...prevParents];
+            updatedParents[index] = {
+                ...updatedParents[index],
+                parentType: value
+            };
+            return updatedParents;
+        });
+    };
+
+    const addPhoneNumber = (index: number) => {
+        setParents(prevParents => {
+            const updatedParents = [...prevParents];
+            updatedParents[index].parentDetails.phoneNumbers.push("");
+            return updatedParents;
+        });
+    };
+
+    const handleRemovePhone = (parentIndex: number, phoneIndex: number) => {
+        setParents(prevParents => {
+            const updatedParents = [...prevParents];
+            updatedParents[parentIndex].parentDetails.phoneNumbers.splice(phoneIndex, 1);
+            return updatedParents;
+        });
+    };
+
+    const handleSaveParents = async () => {
+        setLoading(true)
+        try {
+            const parentData = parents.map((parent)=> ({
+                    parentType: parent.parentType,
+                    parentDetails: JSON.stringify(parent.parentDetails),
+                    studentId: studentId
+                }
+            ))
+            await saveParents(parentData);
+            setAlert({ type: 'success', message: 'Parents details saved successfully' });
+        } catch (error) {
+            console.log(error)
+            setAlert({ type: 'error', message: 'Failed to save parents, please check input' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAddParent = () => {
+        setParents(prevParents => [...prevParents, {
+            parentType: "MOTHER",
+            parentDetails: {
+                fullName: "",
+                phoneNumbers: [""],
+                emailAddress: "",
+            }
+        }]);
+    };
+
+    const handleRemoveParent = (index: number) => {
+        setParents(prevParents => {
+            const updatedParents = [...prevParents];
+            updatedParents.splice(index, 1);
+            return updatedParents;
+        });
+    };
+
+    const onCloseAlert = () => {
+        setAlert({ type: null, message: null });
+    };
+    const renderParentData = () => {
+        if (!existingParentsData || existingParentsData.length === 0) {
+            return (
                 <List
                     dataSource={parents}
                     renderItem={(item, index) => (
@@ -119,16 +227,64 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                         </List.Item>
                     )}
                 />
-                <Button type="dashed" onClick={handleAddParent} style={{ width: '100%' }} icon={<PlusOutlined/>}>
-                    Add Parent Data
-                </Button>
-                <Form.Item>
-                    {parents.length > 0 && (
-                        <Button type="primary" onClick={handleSaveParents} loading={loading} style={{ marginTop: 16 }}>
-                            Save Parents
-                        </Button>
+            )
+        } else {
+            return  (
+                <List
+                    dataSource={existingParentsData}
+                    renderItem={(item) => (
+                        <List.Item key={item.id}>
+                            <Descriptions title={`${item.parentType} Information`} layout="vertical" >
+                                <Descriptions.Item label="Full Name">
+                                    {JSON.parse(item.parentDetails).fullName}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Phone Numbers">
+                                    {JSON.parse(item.parentDetails).phoneNumbers?.join(', ') || 'N/A'}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Email Address">
+                                    {JSON.parse(item.parentDetails).emailAddress || 'N/A'}
+                                </Descriptions.Item>
+                            </Descriptions>
+                        </List.Item>
                     )}
-                </Form.Item>
+                />
+            )
+        }
+    }
+    return (
+        <Card title="Add Parents Details">
+            {
+                alert.type && alert.message && (
+                    <AntdAlert
+                        message={alert.message}
+                        type={alert.type}
+                        showIcon
+                        closable
+                        onClose={onCloseAlert}
+                        style={{ marginBottom: 16 }}
+                    />
+                )
+            }
+            <Form
+                form={parentForm}
+                layout="vertical"
+            >
+                {renderParentData()}
+                {!existingParentsData || existingParentsData.length === 0 ? (
+                    <>
+                        <Button type="dashed" onClick={handleAddParent} style={{ width: '100%' }} icon={<PlusOutlined/>}>
+                            Add Parent Data
+                        </Button>
+                        <Form.Item>
+                            {parents.length > 0 && (
+                                <Button type="primary" onClick={handleSaveParents} loading={loading} style={{ marginTop: 16 }}>
+                                    Save Parents
+                                </Button>
+                            )}
+                        </Form.Item>
+                    </>
+                ) : null}
+
             </Form>
         </Card>
     );

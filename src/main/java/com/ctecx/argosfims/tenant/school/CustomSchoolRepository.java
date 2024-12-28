@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface CustomSchoolRepository {
+
+    List<Map<String, Object>> getStudentParents(int id);
     List<Map<String, Object>> getAllClasses();
     List<Map<String, Object>> getAllStreams();
     List<Map<String, Object>> getAllStudents();
