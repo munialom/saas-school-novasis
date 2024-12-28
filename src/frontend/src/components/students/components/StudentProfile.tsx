@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
     Card,
@@ -8,20 +7,25 @@ import {
     Button,
     Tag,
     Tooltip,
-    Typography, Form
+    Typography,
+    Form,
+    Alert,
+    Switch
 } from 'antd';
 import {
     UserOutlined,
     ArrowLeftOutlined,
     CheckCircleOutlined,
-    CloseCircleOutlined, BookOutlined
+    CloseCircleOutlined,
+    BookOutlined,
+    TeamOutlined
 } from '@ant-design/icons';
 import { Student } from '../../../lib/types';
-import { updateStudent, getClasses, getStreams, saveParents } from '../../../lib/api';
-import PersonalTab from './PersonalTab';
-import AcademicTab from './AcademicTab';
+import { getClasses, getStreams } from '../../../lib/api';
 import UpdateTab from './UpdateTab';
 import ParentsTab from './ParentsTab';
+import PersonalTab from './PersonalTab';
+import AcademicTab from './AcademicTab';
 
 const { Title, Text } = Typography;
 
@@ -29,31 +33,20 @@ interface StudentProfileProps {
     student: Student;
     onBack: () => void;
 }
-interface ParentDetails {
-    fullName: string;
-    phoneNumbers: string[];
-    emailAddress: string;
-}
+
 
 const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
+    const [parentForm] = Form.useForm();
     const [editMode, setEditMode] = useState(false);
     const [classOptions, setClassOptions] = useState<any[]>([]);
     const [streamOptions, setStreamOptions] = useState<any[]>([]);
     const [yearOptions, setYearOptions] = useState<any[]>([]);
-    const [, setAlert] = useState<{ type: 'success' | 'error' | null, message: string | null }>({
+    const [alert, setAlert] = useState<{ type: 'success' | 'error' | null, message: string | null }>({
         type: null,
         message: null
     });
-
-    const [parents, setParents] = useState<
-        {
-            parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
-            parentDetails: ParentDetails
-        }[]
-    >([]);
-    const [parentForm] = Form.useForm();
 
 
     useEffect(() => {
@@ -125,6 +118,11 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
     const handleToggleStatus = async () => {
         console.log('Toggling status of:' + student.fullName)
     };
+    const handleEditModeToggle = () => {
+        setEditMode(!editMode);
+        setAlert({ type: null, message: null })
+    };
+
     const genderOptions = [
         { value: 'MALE', label: 'Male' },
         { value: 'FEMALE', label: 'Female' },
@@ -142,101 +140,9 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
     ];
 
 
-
-    const handleUpdate = async () => {
-        try {
-            setLoading(true);
-            const values = await form.validateFields();
-            const studentData = {
-                id: student.id,
-                fullName: values.fullName,
-                admissionNumber: values.admissionNumber,
-                gender: values.gender ? values.gender[0] : null,
-                location: values.location,
-                classId: values.studentClass ? values.studentClass[0] : null,
-                streamId: values.studentStream ? values.studentStream[0] : null,
-                admission: values.admission ? values.admission[0] : null,
-                mode: values.mode ? values.mode[0] : null,
-                yearOf: values.yearOf ? values.yearOf[0] : null,
-                status: values.status,
-            }
-            await updateStudent(studentData);
-            setAlert({ type: 'success', message: 'Student updated successfully' });
-            setEditMode(false);
-        } catch (error) {
-            console.error('Error updating student:', error);
-            setAlert({ type: 'error', message: 'Failed to update student. Please check your input and try again.' });
-        } finally {
-            setLoading(false);
-        }
+    const onCloseAlert = () => {
+        setAlert({ type: null, message: null });
     };
-    const handleAddParent = () => {
-        const newParent = {
-            parentType: 'MOTHER' as 'MOTHER' | 'FATHER' | 'GUARDIAN',
-            parentDetails: {
-                fullName: '',
-                phoneNumbers: [''],
-                emailAddress: '',
-            }
-        };
-        setParents([...parents, newParent])
-    };
-
-    const handleParentDetailsChange = (index: number, field: string, value: any) => {
-        const updatedParents = [...parents];
-        if(field === 'phoneNumbers') {
-            updatedParents[index].parentDetails[field] =  Array.isArray(value) ? value : [value]
-        }else {
-            updatedParents[index].parentDetails[field as keyof ParentDetails] = value;
-        }
-
-        setParents(updatedParents);
-    };
-
-
-    const handleParentTypeChange = (index: number, value: any) => {
-        const updatedParents = [...parents];
-        updatedParents[index].parentType = value;
-        setParents(updatedParents);
-    };
-    const addPhoneNumber = (index: number) => {
-        const updatedParents = [...parents];
-        updatedParents[index].parentDetails.phoneNumbers.push('');
-        setParents(updatedParents);
-    };
-    const handleRemovePhone = (parentIndex: number, phoneIndex: number) => {
-        const updatedParents = [...parents];
-        updatedParents[parentIndex].parentDetails.phoneNumbers.splice(phoneIndex,1);
-        setParents(updatedParents);
-    };
-    const handleSaveParents = async () => {
-        try {
-            setLoading(true);
-            const parentData = {
-                studentId: student.id,
-                parents: parents.map((parent) => ({
-                    parentType: parent.parentType,
-                    parentDetails: parent.parentDetails
-                }))
-            }
-            await saveParents(parentData);
-            setAlert({ type: 'success', message: 'Parents data added successfully' });
-            parentForm.resetFields();
-            setParents([]);
-        } catch (error) {
-            console.error('Error saving parents data:', error);
-            setAlert({ type: 'error', message: 'Failed to save parents data. Please check your input and try again.' });
-
-        } finally {
-            setLoading(false);
-        }
-    };
-    const handleRemoveParent = (index: number) => {
-        const updatedParents = [...parents];
-        updatedParents.splice(index,1);
-        setParents(updatedParents)
-    };
-
 
 
     const tabItems = [
@@ -265,42 +171,66 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
                     <UserOutlined /> Update
                 </span>
             ),
-            children: <UpdateTab
-                student={student}
-                editMode={editMode}
-                form={form}
-                loading={loading}
-                genderOptions={genderOptions}
-                admissionOptions={admissionOptions}
-                modeOptions={modeOptions}
-                classOptions={classOptions}
-                streamOptions={streamOptions}
-                yearOptions={yearOptions}
-                handleUpdate={handleUpdate}
-            />
+            children: (
+                <Card title="Edit Student Details" extra={<Switch checked={editMode} onChange={handleEditModeToggle} />}>
+                    {alert.type && alert.message && (
+                        <Alert
+                            message={alert.message}
+                            type={alert.type}
+                            showIcon
+                            closable
+                            onClose={onCloseAlert}
+                            style={{ marginBottom: 16 }}
+                        />
+                    )}
+                    <UpdateTab
+                        student={student}
+                        editMode={editMode}
+                        onEditModeToggle={handleEditModeToggle}
+                        form={form}
+                        loading={loading}
+                        setLoading={setLoading}
+                        genderOptions={genderOptions}
+                        admissionOptions={admissionOptions}
+                        modeOptions={modeOptions}
+                        classOptions={classOptions}
+                        streamOptions={streamOptions}
+                        yearOptions={yearOptions}
+                        setAlert={setAlert}
+                    />
+                </Card>
+            ),
         },
         {
             key: 'parents',
             label: (
                 <span>
-                    <UserOutlined /> Parents
-                </span>
+                      <TeamOutlined /> Parents
+                 </span>
             ),
             children: (
-                <ParentsTab
-                    parents={parents}
-                    loading={loading}
-                    parentForm={parentForm}
-                    handleParentDetailsChange={handleParentDetailsChange}
-                    handleParentTypeChange={handleParentTypeChange}
-                    addPhoneNumber={addPhoneNumber}
-                    handleRemovePhone={handleRemovePhone}
-                    handleSaveParents={handleSaveParents}
-                    handleAddParent={handleAddParent}
-                    handleRemoveParent={handleRemoveParent}
-                />
-            ),
-        },
+                <Card title='Add Parents Data'>
+                    {alert.type && alert.message && (
+                        <Alert
+                            message={alert.message}
+                            type={alert.type}
+                            showIcon
+                            closable
+                            onClose={onCloseAlert}
+                            style={{ marginBottom: 16 }}
+                        />
+                    )}
+                    <ParentsTab
+                        studentId={student.id}
+                        loading={loading}
+                        setLoading={setLoading}
+                        parentForm={parentForm}
+                        setAlert={setAlert}
+                        alert={alert}
+                    />
+                </Card>
+            )
+        }
     ];
 
     return (
