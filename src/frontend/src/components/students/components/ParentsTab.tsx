@@ -36,12 +36,20 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
             if(studentId){
                 try {
                     const response = await getStudentParents(studentId);
-                    if(response && response.data) {
-                        setExistingParentsData(response.data);
+                    if (response && response.data) {
+                        if(Array.isArray(response.data)){
+                            setExistingParentsData(response.data);
+                        } else {
+                            setExistingParentsData([response.data])
+                        }
+                    }
+                    else {
+                        setExistingParentsData(null);
                     }
                 } catch (error) {
                     console.log('Error fetching parents data:', error)
                     setAlert({type: 'error', message: 'Failed to load existing parents'})
+                    setExistingParentsData(null)
                 }
             }
 
@@ -49,16 +57,27 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
 
         fetchParentsData();
     }, [studentId,setAlert]);
+
     useEffect(() => {
         if(existingParentsData) {
-            const initialParents = existingParentsData.map((parent) => ({
-                parentType: parent.parentType,
-                parentDetails: JSON.parse(parent.parentDetails)
-            }))
-            setParents(initialParents)
+            try {
+                const initialParents = existingParentsData.map((parent) => ({
+                    parentType: parent.parentType,
+                    parentDetails:  typeof parent.parentDetails === 'string' ? JSON.parse(parent.parentDetails) as ParentDetails : parent.parentDetails as ParentDetails
+                }))
+                setParents(initialParents);
+
+            } catch (e){
+                console.log("could not process data")
+                setAlert({ type: 'error', message: 'Could not process parents data' });
+                setExistingParentsData(null)
+            }
+
+
         }
 
-    }, [existingParentsData]);
+    }, [existingParentsData, setAlert]);
+
     const handleParentDetailsChange = (index: number, field: string, value: any) => {
         setParents(prevParents => {
             const updatedParents = [...prevParents];
@@ -229,20 +248,21 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                 />
             )
         } else {
-            return  (
+
+            return (
                 <List
                     dataSource={existingParentsData}
                     renderItem={(item) => (
                         <List.Item key={item.id}>
                             <Descriptions title={`${item.parentType} Information`} layout="vertical" >
                                 <Descriptions.Item label="Full Name">
-                                    {JSON.parse(item.parentDetails).fullName}
+                                    {item.parentDetails &&  (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).fullName : (item.parentDetails as ParentDetails).fullName) || 'N/A'}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Phone Numbers">
-                                    {JSON.parse(item.parentDetails).phoneNumbers?.join(', ') || 'N/A'}
+                                    {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).phoneNumbers?.join(', ') || 'N/A' : (item.parentDetails as ParentDetails).phoneNumbers?.join(', ') || 'N/A') }
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Email Address">
-                                    {JSON.parse(item.parentDetails).emailAddress || 'N/A'}
+                                    {item.parentDetails && ( typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).emailAddress || 'N/A' : (item.parentDetails as ParentDetails).emailAddress || 'N/A')}
                                 </Descriptions.Item>
                             </Descriptions>
                         </List.Item>
