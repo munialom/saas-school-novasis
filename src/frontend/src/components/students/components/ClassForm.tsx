@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Drawer, Form, Input, Space, Switch, message } from 'antd';
-import LoadingState from '../../../utils/ui/LoadingState';
+import { Button, Drawer, Form, Input, Space, Switch, Alert } from 'antd';
 import { createClass } from '../../../lib/api';
 
 interface ClassFormProps {
@@ -12,23 +11,30 @@ interface ClassFormProps {
 const ClassForm: React.FC<ClassFormProps> = ({ onSuccess, open, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
+    const [alert, setAlert] = useState<{ type: 'success' | 'error' | null, message: string | null }>({
+        type: null,
+        message: null
+    });
 
     const onSubmit = async () => {
         try {
             setLoading(true);
             const values = await form.validateFields();
             await createClass({ className: values.className, status: values.status || false });
-            message.success('Class added successfully');
+            setAlert({ type: 'success', message: 'Class added successfully' });
             if (onSuccess) onSuccess();
             form.resetFields();
             setTimeout(onClose, 1000);
         } catch (error) {
             console.log(error)
-            message.error('Failed to save class. Please check your input and try again.');
+            setAlert({ type: 'error', message: 'Failed to save class. Please check your input and try again.' });
             // Error is handled by axios interceptor
         } finally {
             setLoading(false);
         }
+    };
+    const onCloseAlert = () => {
+        setAlert({ type: null, message: null });
     };
 
     return (
@@ -46,30 +52,38 @@ const ClassForm: React.FC<ClassFormProps> = ({ onSuccess, open, onClose }) => {
                 </Space>
             }
         >
-            <LoadingState loading={loading}>
-                <Form
-                    form={form}
-                    layout="vertical"
-                    hideRequiredMark
+            {alert.type && alert.message && (
+                <Alert
+                    message={alert.message}
+                    type={alert.type}
+                    showIcon
+                    closable
+                    onClose={onCloseAlert}
+                    style={{ marginBottom: 16 }}
+                />
+            )}
+            <Form
+                form={form}
+                layout="vertical"
+                hideRequiredMark
+            >
+                <Form.Item
+                    name="className"
+                    label="Class Name"
+                    rules={[{ required: true, message: 'Please enter class name' }]}
                 >
-                    <Form.Item
-                        name="className"
-                        label="Class Name"
-                        rules={[{ required: true, message: 'Please enter class name' }]}
-                    >
-                        <Input placeholder="Enter class name" />
-                    </Form.Item>
+                    <Input placeholder="Enter class name" />
+                </Form.Item>
 
-                    <Form.Item
-                        name="status"
-                        label="Status"
-                        valuePropName="checked"
-                        initialValue={true}
-                    >
-                        <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
-                    </Form.Item>
-                </Form>
-            </LoadingState>
+                <Form.Item
+                    name="status"
+                    label="Status"
+                    valuePropName="checked"
+                    initialValue={true}
+                >
+                    <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
+                </Form.Item>
+            </Form>
         </Drawer>
     );
 };
