@@ -14,6 +14,10 @@ export interface Student {
     studentStream: {
         streamName: string
     };
+    createdAt?: string;
+    createdBy?: string;
+    updatedAt?: string;
+    updatedBy?: string;
 }
 
 export interface StudentDTO {
@@ -28,16 +32,28 @@ export interface StudentDTO {
     mode: string | null;
     yearOf: number | null;
 }
-
+export interface ParentDetails {
+    fullName: string;
+    phoneNumbers: string[];
+    emailAddress: string;
+}
 export interface Class {
     id: number;
     className: string;
-    status: boolean
+    status: boolean,
+    createdAt?: string;
+    createdBy?: string;
+    updatedAt?: string;
+    updatedBy?: string;
 }
 export interface Stream {
     id: number;
     streamName: string;
     status: boolean;
+    createdAt?: string;
+    createdBy?: string;
+    updatedAt?: string;
+    updatedBy?: string;
 }
 
 export enum Admission {

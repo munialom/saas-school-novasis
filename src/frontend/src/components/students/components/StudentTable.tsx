@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert } from 'antd';
-import { SearchOutlined, EyeOutlined, } from '@ant-design/icons';
-
+import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { getStudents } from '../../../lib/api';
 import { Student } from '../../../lib/types';
-
 
 interface StudentTableProps {
     onViewStudent: (student: Student) => void;
@@ -22,11 +20,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         message: null
     });
 
-
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setLoading(true)
+                setLoading(true);
                 const response = await getStudents();
                 if (response && response.data && Array.isArray(response.data)) {
                     const formattedStudents = response.data.map((item: any) => ({
@@ -45,7 +42,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                         studentStream: {
                             streamName: item.StreamName
                         },
-
+                        createdAt: item.CreatedAt,
+                        createdBy: item.CreatedBy,
+                        updatedAt: item.UpdatedAt,
+                        updatedBy: item.UpdatedBy,
                     }));
                     setStudents(formattedStudents);
                     //Extract unique classes and streams for filtering
@@ -54,11 +54,11 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
 
                     formattedStudents.forEach((student: Student) => { // Explicitly type 'student' as Student
                         if (student.studentClass && student.studentClass.className) {
-                            classMap[student.studentClass.className] = {id: student.studentClass.className, className: student.studentClass.className };
+                            classMap[student.studentClass.className] = { id: student.studentClass.className, className: student.studentClass.className };
                         }
 
                         if (student.studentStream && student.studentStream.streamName) {
-                            streamMap[student.studentStream.streamName] = { id: student.studentStream.streamName,streamName: student.studentStream.streamName };
+                            streamMap[student.studentStream.streamName] = { id: student.studentStream.streamName, streamName: student.studentStream.streamName };
                         }
                     });
                     setClasses(Object.values(classMap));
@@ -66,9 +66,9 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                 }
 
 
-            }catch (error) {
+            } catch (error) {
                 console.error('Error fetching students:', error);
-                setAlert({type:'error', message:'Failed to load student data'})
+                setAlert({ type: 'error', message: 'Failed to load student data' })
             } finally {
                 setLoading(false)
             }
@@ -204,6 +204,26 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             onFilter: (value, record) => record.status === value,
         },
         {
+            title: 'Created At',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+        },
+        {
+            title: 'Created By',
+            dataIndex: 'createdBy',
+            key: 'createdBy',
+        },
+        {
+            title: 'Updated At',
+            dataIndex: 'updatedAt',
+            key: 'updatedAt',
+        },
+        {
+            title: 'Updated By',
+            dataIndex: 'updatedBy',
+            key: 'updatedBy',
+        },
+        {
             title: 'Action',
             key: 'action',
             width: 100,
@@ -240,7 +260,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     rowKey="id"
                     size="small"
                     loading={loading}
-                    locale={{ emptyText: 'No Students Data' }} // Customize empty text
+                    locale={{ emptyText: 'No Students Data' }}
                     scroll={{ x: 'max-content' }}
                     pagination={{
                         defaultPageSize: 10,
@@ -252,6 +272,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     rowClassName={(record) => !record.status ? 'table-row-inactive' : ''}
                     style={{
                         backgroundColor: 'white',
+                        padding: 0,
+                        margin: 0,
                     }}
                 />
             </Space>

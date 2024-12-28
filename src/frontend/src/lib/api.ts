@@ -83,6 +83,18 @@ export const updateStudent = async (student: any): Promise<any> => {
     }
 };
 
+export const saveParents = async (parentData: any): Promise<any> => {
+    try {
+        return await axios.post(
+            `${getApiBaseUrl()}/api/v1/student-parents/save`,
+            parentData,
+            getAuthConfig()
+        );
+    } catch (e) {
+        throw e;
+    }
+};
+
 
 export const getClasses = async (): Promise<any> => {
     try {
