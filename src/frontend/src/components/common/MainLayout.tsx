@@ -24,7 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Layout>
                 <Header collapsed={collapsed} />
                 <PageCrumbs />
-                <Content style={{ margin: '12px 12px 0' }}>
+                <Content style={{ margin: '8px 12px 0' }}>
                     <div
                         style={{
                             padding: 2,
