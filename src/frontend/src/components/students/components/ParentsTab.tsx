@@ -11,7 +11,8 @@ import {
     Cascader,
     Alert as AntdAlert,
     Descriptions,
-    Modal
+    Modal,
+    Typography
 } from 'antd';
 import { ParentDetails, ParentResponse } from '../../../lib/types';
 import { PlusOutlined } from '@ant-design/icons';
@@ -125,15 +126,19 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
         setLoading(true)
         try {
             const parentData = parents.map((parent) => ({
-                    parentType: parent.parentType,
-                    parentDetails: JSON.stringify(parent.parentDetails),
-                    studentId: studentId
-                }
-            ))
-            await saveParents(parentData);
-            setAlert({ type: 'success', message: 'Parents details saved successfully' });
-            setIsModalOpen(false)
-            setParents([]) //clear form after saving
+                parentType: parent.parentType as 'MOTHER' | 'FATHER' | 'GUARDIAN',
+                parentDetails: parent.parentDetails,
+            }))
+
+            if(studentId){
+                await saveParents(parentData, studentId);
+                setAlert({ type: 'success', message: 'Parents details saved successfully' });
+                setIsModalOpen(false)
+                setParents([]) //clear form after saving
+            } else {
+                setAlert({type: 'error', message: 'Student id missing!'})
+            }
+
         } catch (error) {
             console.log(error)
             setAlert({ type: 'error', message: 'Failed to save parents, please check input' });
@@ -205,7 +210,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                             const parsedParentDetails = item.ParentDetails;
                             return (
                                 <List.Item key={item.Id}>
-                                    <Descriptions title={`${item.ParentType} Information`} layout="vertical" >
+                                    <Descriptions title={<Typography.Text strong>{`${item.ParentType} Information`}</Typography.Text>} layout="vertical" >
                                         <Descriptions.Item label="Full Name">
                                             {parsedParentDetails?.fullName || 'N/A'}
                                         </Descriptions.Item>

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { StudentDTO } from "./types";
+import { StudentDTO, ParentDetails } from "./types";
 
 const getApiBaseUrl = (): string => {
     try {
@@ -83,11 +83,29 @@ export const updateStudent = async (student: any): Promise<any> => {
     }
 };
 
-export const saveParents = async (parentData: any): Promise<any> => {
+interface ParentRecord {
+    parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
+    parentDetails: ParentDetails
+}
+
+interface StudentParentRequest {
+    studentId: number;
+    parents: ParentRecord[]
+}
+
+
+export const saveParents = async (parentData: { parentType: string, parentDetails: ParentDetails }[], studentId: number | undefined): Promise<any> => {
+    const requestBody:StudentParentRequest = {
+        studentId: studentId || 0, //default student id of 0
+        parents: parentData.map(parent => ({
+            parentType: parent.parentType as 'MOTHER' | 'FATHER' | 'GUARDIAN',
+            parentDetails: parent.parentDetails
+        }))
+    }
     try {
         return await axios.post(
             `${getApiBaseUrl()}/api/v1/student-parents/save`,
-            parentData,
+            requestBody,
             getAuthConfig()
         );
     } catch (e) {
