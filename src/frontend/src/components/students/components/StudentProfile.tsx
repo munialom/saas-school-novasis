@@ -12,7 +12,8 @@ import {
     Form,
     Alert,
     Switch,
-    message
+    message,
+    Spin
 } from 'antd';
 import {
     UserOutlined,
@@ -51,6 +52,8 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
         type: null,
         message: null
     });
+    const [isToggling, setIsToggling] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
 
     useEffect(() => {
@@ -120,7 +123,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
 
 
     const handleToggleStatus = async () => {
-        setLoading(true)
+        setIsToggling(true);
         try {
             const response = await toggleStudentStatus(student.id || 0);
             if (response && response.data) {
@@ -135,12 +138,12 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
             console.error("Error toggling student status:", error);
             setAlert({ type: 'error', message: `Failed to toggle status for student: ${student.fullName}` });
         }finally {
-            setLoading(false);
+            setIsToggling(false);
         }
     };
 
     const handleDeleteStudent = async () => {
-        setLoading(true);
+        setIsDeleting(true);
         try {
             await deleteStudent(student.id || 0);
             message.success(`Successfully Deleted student: ${student.fullName}`);
@@ -149,7 +152,7 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
             console.error("Error deleting student:", error);
             setAlert({ type: 'error', message: `Failed to delete student: ${student.fullName}` });
         }finally {
-            setLoading(false);
+            setIsDeleting(false);
         }
     };
 
@@ -300,10 +303,14 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
                         style={{ cursor: 'pointer' }}
                         onClick={handleToggleStatus}
                     >
-                        {student?.status ? (
-                            <><CheckCircleOutlined /> Active</>
+                        {isToggling ? (
+                            <Spin size="small" />
                         ) : (
-                            <><CloseCircleOutlined /> Inactive</>
+                            <> {student?.status ? (
+                                <><CheckCircleOutlined /> Active</>
+                            ) : (
+                                <><CloseCircleOutlined /> Inactive</>
+                            )}</>
                         )}
                     </Tag>
                 </Tooltip>
@@ -315,10 +322,11 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
                     cancelText="No"
                     confirmButtonProps={{
                         danger: true,
-                        type: "primary"
+                        type: "primary",
+                        loading: isDeleting
                     }}
                 >
-                    <Button danger>Delete Student</Button>
+                    <Button danger type="dashed">Delete Student</Button>
                 </PopConfirm>
 
             </Space>
