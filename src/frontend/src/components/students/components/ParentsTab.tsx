@@ -76,53 +76,6 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
         fetchParentsData();
     }, [studentId, setAlert]);
 
-    useEffect(() => {
-        console.log("Existing Parents Data:", existingParentsData);
-
-        if (existingParentsData) {
-            try {
-                const initialParents = existingParentsData.map((parent) => {
-                    let parentDetails: ParentDetails | string = parent.parentDetails;
-                    console.log("Processing Parent:", parent);
-                    console.log("Initial Parent Details:", parentDetails);
-
-                    if (typeof parentDetails === 'string') {
-                        try {
-                            //remove the backslashes so that we can convert to JSON object
-                            const parsedParentDetails = JSON.parse(parentDetails.replace(/\\/g, '')) as ParentDetails;
-                            console.log("Parsed Parent Details:", parsedParentDetails);
-                            parentDetails = parsedParentDetails
-                        } catch (e) {
-                            console.log("error converting stringified json", e);
-                            parentDetails = {
-                                fullName: "",
-                                phoneNumbers: [],
-                                emailAddress: ""
-                            }
-                            console.log("Defaulted Parent Details:", parentDetails);
-                        }
-                    }
-                    console.log("Final Parent Details:", parentDetails);
-
-
-                    return {
-                        parentType: parent.parentType,
-                        parentDetails: parentDetails as ParentDetails
-                    }
-
-                })
-                setParents(initialParents);
-                console.log("Final Parsed Parents:", initialParents);
-
-
-            } catch (e) {
-                console.log("could not process data", e)
-                setAlert({ type: 'error', message: 'Could not process parents data' });
-                setExistingParentsData(null)
-            }
-        }
-
-    }, [existingParentsData, setAlert]);
 
 
     const handleParentDetailsChange = (index: number, field: string, value: any) => {
@@ -330,7 +283,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                             dataSource={existingParentsData}
                             renderItem={(item) => {
                                 console.log("Rendering Existing Parent Item:", item)
-                                const parsedParentDetails = typeof item.parentDetails === 'string' ? JSON.parse(item.parentDetails.replace(/\\/g, '')) as ParentDetails : item.parentDetails as ParentDetails
+                                const parsedParentDetails = typeof item.parentDetails === 'string' ? JSON.parse(item.parentDetails.replace(/\\/g, '')) as ParentDetails : item.parentDetails;
                                 return (
                                     <List.Item key={item.id}>
                                         <Descriptions title={`${item.parentType} Information`} layout="vertical" >
