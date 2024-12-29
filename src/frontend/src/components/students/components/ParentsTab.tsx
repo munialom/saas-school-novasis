@@ -50,15 +50,19 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
             if (studentId) {
                 try {
                     const response = await getStudentParents(studentId);
+                    console.log("API Response:", response); // Log the raw response
                     if (response && response.data) {
                         if (Array.isArray(response.data)) {
+                            console.log("API Response Data (Array):", response.data);
                             setExistingParentsData(response.data);
                         } else {
+                            console.log("API Response Data (Single):", response.data);
                             setExistingParentsData([response.data])
                         }
                     }
                     else {
                         setExistingParentsData(null);
+                        console.log("API Response No Data:", response);
                     }
                 } catch (error) {
                     console.log('Error fetching parents data:', error)
@@ -73,15 +77,20 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
     }, [studentId, setAlert]);
 
     useEffect(() => {
+        console.log("Existing Parents Data:", existingParentsData);
+
         if (existingParentsData) {
             try {
                 const initialParents = existingParentsData.map((parent) => {
                     let parentDetails: ParentDetails | string = parent.parentDetails;
+                    console.log("Processing Parent:", parent);
+                    console.log("Initial Parent Details:", parentDetails);
 
                     if (typeof parentDetails === 'string') {
                         try {
                             //remove the backslashes so that we can convert to JSON object
                             const parsedParentDetails = JSON.parse(parentDetails.replace(/\\/g, '')) as ParentDetails;
+                            console.log("Parsed Parent Details:", parsedParentDetails);
                             parentDetails = parsedParentDetails
                         } catch (e) {
                             console.log("error converting stringified json", e);
@@ -90,8 +99,11 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                                 phoneNumbers: [],
                                 emailAddress: ""
                             }
+                            console.log("Defaulted Parent Details:", parentDetails);
                         }
                     }
+                    console.log("Final Parent Details:", parentDetails);
+
 
                     return {
                         parentType: parent.parentType,
@@ -100,6 +112,8 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
 
                 })
                 setParents(initialParents);
+                console.log("Final Parsed Parents:", initialParents);
+
 
             } catch (e) {
                 console.log("could not process data", e)
@@ -317,21 +331,25 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                                 ...parent,
                                 parentDetails: typeof parent.parentDetails === 'string' ? JSON.parse(parent.parentDetails.replace(/\\/g, '')) as ParentDetails : parent.parentDetails as ParentDetails,
                             }))}
-                            renderItem={(item: ParentResponse & { parentDetails: ParentDetails }) => (
-                                <List.Item key={item.id}>
-                                    <Descriptions title={`${item.parentType} Information`} layout="vertical" >
-                                        <Descriptions.Item label="Full Name">
-                                            {item.parentDetails?.fullName || 'N/A'}
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label="Phone Numbers">
-                                            {item.parentDetails?.phoneNumbers?.join(', ') || 'N/A'}
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label="Email Address">
-                                            {item.parentDetails?.emailAddress || 'N/A'}
-                                        </Descriptions.Item>
-                                    </Descriptions>
-                                </List.Item>
-                            )}
+                            renderItem={(item: ParentResponse & { parentDetails: ParentDetails }) => {
+                                console.log("Rendering Existing Parent Item:", item)
+                                return (
+                                    <List.Item key={item.id}>
+                                        <Descriptions title={`${item.parentType} Information`} layout="vertical" >
+                                            <Descriptions.Item label="Full Name">
+                                                {item.parentDetails?.fullName || 'N/A'}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Phone Numbers">
+                                                {item.parentDetails?.phoneNumbers?.join(', ') || 'N/A'}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Email Address">
+                                                {item.parentDetails?.emailAddress || 'N/A'}
+                                            </Descriptions.Item>
+                                        </Descriptions>
+                                    </List.Item>
+                                )
+                            }}
+
                         />
                     </Card>
                 )}
