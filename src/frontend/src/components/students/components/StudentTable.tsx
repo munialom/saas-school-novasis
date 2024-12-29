@@ -36,36 +36,36 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             if (response && response.data) {
                 const { records = [], totalRecords } = response.data as StudentSearchResponse;
                 console.log("API data:", { records, totalRecords });
-                // Use optional chaining and `as any` to prevent errors when property is not found
-                const formattedStudents: Student[] = records.map((item: any) => ({
-                    id: item?.Id,
-                    admissionNumber: item?.AdmissionNumber,
-                    fullName: item?.FullName,
-                    gender: item?.Gender,
-                    location: item?.Location,
-                    admission: item?.Admission,
-                    mode: item?.Mode,
-                    status: item?.Status === 'Active',
-                    yearOf: item?.YearOf,
-                    studentClass: {
-                        className: item?.ClassName
-                    },
-                    studentStream: {
-                        streamName: item?.StreamName
-                    },
-                    createdAt: item?.CreatedAt,
-                    createdBy: item?.CreatedBy,
-                    TotalRecords: item?.TotalRecords
-                }));
+
+                const formattedStudents: Student[] = records.map((item: any) => {
+                    return {
+                        id: item.Id,
+                        admissionNumber: item.AdmissionNumber,
+                        fullName: item.FullName,
+                        gender: item.Gender,
+                        location: item.Location,
+                        admission: item.Admission,
+                        mode: item.Mode,
+                        status: item.Status === 'Active',
+                        yearOf: item.YearOf,
+                        studentClass: {
+                            className: item.ClassName
+                        },
+                        studentStream: {
+                            streamName: item.StreamName
+                        },
+                        createdAt: item.CreatedAt,
+                        createdBy: item.CreatedBy,
+                        TotalRecords: item.TotalRecords
+                    }
+                });
 
                 console.log("Formatted students:", formattedStudents);
                 setStudents(formattedStudents);
                 setTotalRecords(totalRecords);
 
-
                 const classMap: Record<string, any> = {};
                 const streamMap: Record<string, any> = {};
-
 
                 formattedStudents.forEach((student: Student) => {
                     if (student.studentClass && student.studentClass.className) {
@@ -85,20 +85,20 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             setAlert({ type: 'error', message: 'Failed to load student data' });
         } finally {
             setLoading(false);
-            console.log("loadStudents completed, loading:", loading)
+            console.log("loadStudents completed, loading:", loading);
         }
     }, []);
 
 
+
     useEffect(() => {
         loadStudents(searchText, currentPage);
-        console.log("useEffect - searchText:", searchText, "currentPage:", currentPage);
+        console.log("useEffect - searchText:", searchText, "currentPage:", currentPage)
         //load data on mounted
         if(!searchText){
             loadStudents('', 1)
         }
     }, [searchText, currentPage, loadStudents]);
-
 
 
     const onCloseAlert = () => {
@@ -110,12 +110,14 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         console.log('toggled status of: ' + record.fullName);
     };
 
+
     const rowSelection = {
         selectedRowKeys,
         onChange: (newSelectedRowKeys: React.Key[]) => {
             setSelectedRowKeys(newSelectedRowKeys);
         },
     };
+
 
 
     const columns: ColumnsType<Student> = [
@@ -261,7 +263,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         setSearchText(value);
         setCurrentPage(1);
     };
-
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
