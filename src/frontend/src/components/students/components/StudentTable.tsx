@@ -2,35 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert } from 'antd';
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType, TableProps } from 'antd/es/table';
-import { getStudents } from '../../../lib/api';
+import { searchStudentsWithPagination } from '../../../lib/api';
 import { Student } from '../../../lib/types';
 
 interface StudentTableProps {
     onViewStudent: (student: Student) => void;
 }
+
 type TablePagination<T extends object> = NonNullable<Exclude<TableProps<T>['pagination'], boolean>>;
 type TablePaginationPosition = NonNullable<TablePagination<any>['position']>[number];
 const defaultFooter = () => 'End of Student List';
+
 
 const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const [loading, setLoading] = useState(false);
     const [students, setStudents] = useState<Student[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [streams, setStreams] = useState<any[]>([]);
-    const [alert, setAlert] = useState<{ type: 'success' | 'error' | null, message: string | null }>({
+    const [alert, setAlert] = useState<{ type: 'success' | 'error' | null; message: string | null }>({
         type: null,
-        message: null
+        message: null,
     });
-
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [search, setSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalRecords, setTotalRecords] = useState(0);
     const bottom: TablePaginationPosition = 'bottomRight';
+    const pageSize = 8; // Set the records per page
 
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await getStudents();
+                const response = await searchStudentsWithPagination(search, currentPage);
                 if (response && response.data && Array.isArray(response.data)) {
                     const formattedStudents = response.data.map((item: any) => ({
                         id: item.Id,
@@ -43,14 +48,16 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                         status: item.Status === 'Active',
                         yearOf: item.YearOf,
                         studentClass: {
-                            className: item.ClassName
+                            className: item.ClassName,
                         },
                         studentStream: {
-                            streamName: item.StreamName
+                            streamName: item.StreamName,
                         },
                         createdAt: item.CreatedAt,
                         createdBy: item.CreatedBy,
+                        TotalRecords: item.TotalRecords, // Assuming your backend sends total records in each response
                     }));
+
                     setStudents(formattedStudents);
                     //Extract unique classes and streams for filtering
                     const classMap: Record<string, any> = {};
@@ -67,25 +74,33 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     });
                     setClasses(Object.values(classMap));
                     setStreams(Object.values(streamMap));
-
+                    if(formattedStudents.length > 0){
+                        setTotalRecords(formattedStudents[0].TotalRecords || 0);
+                    }else {
+                        setTotalRecords(0);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching students:', error);
-                setAlert({ type: 'error', message: 'Failed to load student data' })
+                setAlert({ type: 'error', message: 'Failed to load student data' });
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
         };
 
         fetchData();
-    }, []);
+    }, [search, currentPage]); // Fetch data when search or page changes
+
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
     const handleToggleStatus = async (record: Student) => {
-        console.log('toggled status of: ' + record.fullName)
+        console.log('toggled status of: ' + record.fullName);
     };
-
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+        setCurrentPage(1); // Reset to page 1 when searching
+    };
 
     const rowSelectionConfig = {
         selectedRowKeys,
@@ -94,9 +109,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         },
     };
 
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
     const scroll: { x?: number | string; y?: number | string } = {};
     scroll.y = 240;
-
 
     const tableProps: TableProps<Student> = {
         bordered: false,
@@ -105,7 +123,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         showHeader: true,
         rowSelection: rowSelectionConfig,
         scroll,
-        footer:  defaultFooter ,
+        footer: defaultFooter,
     };
 
     const columns: ColumnsType<Student> = [
@@ -133,7 +151,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
             render: (text, record) => (
                 <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
-            )
+            ),
         },
         {
             title: 'Name',
@@ -143,7 +161,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             sorter: (a, b) => a.fullName.localeCompare(b.fullName),
             render: (text, record) => (
                 <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
-            )
+            ),
         },
         {
             title: 'Class',
@@ -229,7 +247,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             dataIndex: 'createdBy',
             key: 'createdBy',
         },
-
         {
             title: 'Action',
             key: 'action',
@@ -260,11 +277,22 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                 />
             )}
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <Input
+                    placeholder="Search Students by name or admission number"
+                    value={search}
+                    onChange={handleSearchChange}
+                    style={{ marginBottom: 16 }}
+                />
                 <Table<Student>
                     {...tableProps}
-                    pagination={{ position: ['none', bottom]  ,  defaultPageSize: 10,
+                    pagination={{
+                        position: ['none', bottom],
+                        defaultPageSize: pageSize,
+                        current: currentPage,
+                        total: totalRecords,
                         showSizeChanger: true,
                         showQuickJumper: true,
+                        onChange: handlePageChange,
                         showTotal: (total) => `Total ${total} students`,
                     }}
                     columns={columns}

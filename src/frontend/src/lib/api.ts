@@ -5,8 +5,7 @@ import {
     ClassUpdateDTO,
     StreamUpdateDTO,
     StreamDeleteDTO,
-    ClassDeleteDTO,
-    StudentSearchResponse
+    ClassDeleteDTO
 } from "./types";
 
 const getApiBaseUrl = (): string => {
@@ -239,9 +238,9 @@ export const deleteClass = async (classId: number): Promise<any> => {
     }
 };
 
-export const searchStudentsWithPagination = async (searchTerm: string, pageNumber: number): Promise<AxiosResponse<StudentSearchResponse>> => {
+export const searchStudentsWithPagination = async (searchTerm: string, pageNumber: number): Promise<AxiosResponse> => {
     try {
-        return await axios.get<StudentSearchResponse>(`${getApiBaseUrl()}/api/v1/school/students/search`, {
+        return await axios.get(`${getApiBaseUrl()}/api/v1/school/students/search`, {
             ...getAuthConfig(),
             params: {
                 searchTerm: searchTerm,

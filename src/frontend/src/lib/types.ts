@@ -34,10 +34,7 @@ export interface StudentDTO {
     mode: string | null;
     yearOf: number | null;
 }
-export interface StudentSearchResponse {
-    records: Student[],
-    totalRecords: number
-}
+
 
 
 export interface ParentDetails {
