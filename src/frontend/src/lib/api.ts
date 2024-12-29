@@ -58,17 +58,17 @@ export const logout = async (): Promise<any> => {
 };
 
 
-// Removed old getStudents
-// export const getStudents = async (): Promise<any> => {
-//     try {
-//         return await axios.get(
-//             `${getApiBaseUrl()}/api/v1/school/students`,
-//             getAuthConfig()
-//         );
-//     } catch (e) {
-//         throw e;
-//     }
-// };
+
+ export const getStudents = async (): Promise<any> => {
+ try {
+        return await axios.get(
+            `${getApiBaseUrl()}/api/v1/school/students`,
+           getAuthConfig()
+         );
+     } catch (e) {
+        throw e;
+   }
+};
 
 export const saveStudent = async (student: StudentDTO): Promise<any> => {
     try {
