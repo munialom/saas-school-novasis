@@ -27,7 +27,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <Content style={{ margin: '12px 12px 0' }}>
                     <div
                         style={{
-                            padding: 24,
+                            padding: 12,
                             minHeight: 360,
                             background: '#f0f2f5',
                             borderRadius: 8,
