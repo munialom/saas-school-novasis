@@ -1,7 +1,7 @@
 // PopConfirm.tsx
 import React from 'react';
 import type { PopconfirmProps } from 'antd';
-import { Button, Popconfirm } from 'antd';
+import { Popconfirm } from 'antd';
 
 interface PopConfirmComponentProps extends PopconfirmProps {
     children: React.ReactNode;
