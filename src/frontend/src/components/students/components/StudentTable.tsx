@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert, Form, Switch , Checkbox} from 'antd';
+import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert } from 'antd';
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType, TableProps } from 'antd/es/table';
 import { getStudents } from '../../../lib/api';
@@ -10,21 +10,10 @@ interface StudentTableProps {
 }
 type TablePagination<T extends object> = NonNullable<Exclude<TableProps<T>['pagination'], boolean>>;
 type TablePaginationPosition = NonNullable<TablePagination<any>['position']>[number];
-type TableRowSelection<T extends object> = TableProps<T>['rowSelection'];
-
-
-
+const defaultFooter = () => 'End of Student List';
 
 const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
-    const [bordered, setBordered] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [showHeader, setShowHeader] = useState(true);
-    const [rowSelection, setRowSelection] = useState<TableRowSelection<Student> | undefined>({});
-    const [yScroll, setYScroll] = useState(false);
-    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-    const [bottom] = useState<TablePaginationPosition>('bottomRight');
-
-
+    const [loading, setLoading] = useState(false);
     const [students, setStudents] = useState<Student[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [streams, setStreams] = useState<any[]>([]);
@@ -32,6 +21,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         type: null,
         message: null
     });
+
+    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const bottom: TablePaginationPosition = 'bottomRight';
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -74,6 +67,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     });
                     setClasses(Object.values(classMap));
                     setStreams(Object.values(streamMap));
+
                 }
             } catch (error) {
                 console.error('Error fetching students:', error);
@@ -92,23 +86,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         console.log('toggled status of: ' + record.fullName)
     };
 
-    const handleBorderChange = (enable: boolean) => {
-        setBordered(enable);
-    };
-
-
-    const handleHeaderChange = (enable: boolean) => {
-        setShowHeader(enable);
-    };
-
-    const handleRowSelectionChange = (enable: boolean) => {
-        setRowSelection(enable ? {} : undefined);
-    };
-
-    const handleYScrollChange = (enable: boolean) => {
-        setYScroll(enable);
-    };
-
 
     const rowSelectionConfig = {
         selectedRowKeys,
@@ -118,17 +95,19 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     };
 
     const scroll: { x?: number | string; y?: number | string } = {};
-    if (yScroll) {
-        scroll.y = 240;
-    }
+    scroll.y = 240;
+
+
     const tableProps: TableProps<Student> = {
-        bordered,
+        bordered: false,
         loading,
         size: 'small',
-        showHeader,
-        rowSelection: rowSelection ? rowSelectionConfig : undefined ,
+        showHeader: true,
+        rowSelection: rowSelectionConfig,
         scroll,
+        footer:  defaultFooter ,
     };
+
     const columns: ColumnsType<Student> = [
         {
             title: 'Admission No',
@@ -267,6 +246,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             ),
         },
     ];
+
     return (
         <Card>
             {alert.type && alert.message && (
@@ -279,23 +259,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     style={{ marginBottom: 16 }}
                 />
             )}
-            <Form layout="inline" className="table-demo-control-bar" style={{ marginBottom: 16 }}>
-                <Form.Item label="Bordered">
-                    <Checkbox checked={bordered} onChange={(e) => handleBorderChange(e.target.checked)} />
-                </Form.Item>
-                <Form.Item label="loading">
-                    <Switch checked={loading} onChange={setLoading} />
-                </Form.Item>
-                <Form.Item label="Column Header">
-                    <Checkbox checked={showHeader} onChange={(e) => handleHeaderChange(e.target.checked)} />
-                </Form.Item>
-                <Form.Item label="Checkbox">
-                    <Checkbox checked={!!rowSelection} onChange={(e) => handleRowSelectionChange(e.target.checked)} />
-                </Form.Item>
-                <Form.Item label="Fixed Header">
-                    <Checkbox checked={!!yScroll} onChange={(e) => handleYScrollChange(e.target.checked)} />
-                </Form.Item>
-            </Form>
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
                 <Table<Student>
                     {...tableProps}
