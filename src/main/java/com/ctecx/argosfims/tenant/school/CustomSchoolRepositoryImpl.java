@@ -20,8 +20,42 @@ public class CustomSchoolRepositoryImpl implements CustomSchoolRepository {
 
     private final TenantJdbcTemplateConfig tenantJdbcTemplateConfig;
 
+
+
     private JdbcTemplate getJdbcTemplate(){
         return tenantJdbcTemplateConfig.getTenantJdbcTemplate();
+    }
+
+    @Override
+    public Map<String, Object> deleteStudent(int id) {
+        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(getJdbcTemplate())
+                .withProcedureName("DeleteStudentById")
+                .declareParameters(
+                        new SqlParameter("student_id", Types.BIGINT),
+                        new SqlOutParameter("error_message", Types.VARCHAR),
+                        new SqlOutParameter("rows_affected", Types.INTEGER)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("student_id", id);
+
+        return simpleJdbcCall.execute(inParams);
+    }
+    @Override
+    public Map<String, Object> toggleStudentStatus(int id) {
+        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(getJdbcTemplate())
+                .withProcedureName("ToggleStudentStatus")
+                .declareParameters(
+                        new SqlParameter("student_id", Types.BIGINT),
+                        new SqlOutParameter("error_message", Types.VARCHAR),
+                        new SqlOutParameter("new_status", Types.BIT),
+                        new SqlOutParameter("rows_affected", Types.INTEGER)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("student_id", id);
+
+        return simpleJdbcCall.execute(inParams);
     }
 
     @Override

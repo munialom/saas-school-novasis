@@ -1,3 +1,4 @@
+// api.ts
 import axios, { AxiosResponse } from 'axios';
 import {
     StudentDTO,
@@ -58,15 +59,15 @@ export const logout = async (): Promise<any> => {
 
 
 
- export const getStudents = async (): Promise<any> => {
- try {
+export const getStudents = async (): Promise<any> => {
+    try {
         return await axios.get(
             `${getApiBaseUrl()}/api/v1/school/students`,
-           getAuthConfig()
-         );
-     } catch (e) {
+            getAuthConfig()
+        );
+    } catch (e) {
         throw e;
-   }
+    }
 };
 
 export const saveStudent = async (student: StudentDTO): Promise<any> => {
@@ -92,6 +93,33 @@ export const updateStudent = async (student: any): Promise<any> => {
         throw e;
     }
 };
+
+//New API call for toggle student status
+export const toggleStudentStatus = async (studentId: number): Promise<any> => {
+    try {
+        return await axios.put(
+            `${getApiBaseUrl()}/api/v1/school/students/${studentId}/status`,
+            {},
+            getAuthConfig()
+        );
+    } catch (e) {
+        throw e;
+    }
+};
+
+
+// New API call to delete student
+export const deleteStudent = async (studentId: number): Promise<any> => {
+    try {
+        return await axios.delete(
+            `${getApiBaseUrl()}/api/v1/school/students/${studentId}`,
+            getAuthConfig()
+        );
+    } catch (e) {
+        throw e;
+    }
+};
+
 
 interface ParentRecord {
     parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';

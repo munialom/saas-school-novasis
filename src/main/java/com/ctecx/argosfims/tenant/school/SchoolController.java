@@ -14,7 +14,16 @@ public class SchoolController {
 
     private final SchoolService schoolService;
 
-
+    @DeleteMapping("/students/{id}")
+    public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable int id){
+        Map<String, Object> result =  schoolService.deleteStudent(id);
+        return  !result.isEmpty() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
+    }
+    @PutMapping("/students/{id}/status")
+    public ResponseEntity<Map<String, Object>> toggleStudentStatus(@PathVariable int id) {
+        Map<String, Object> result = schoolService.toggleStudentStatus(id);
+        return  !result.isEmpty() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
+    }
     @GetMapping("/students/search")
     public ResponseEntity<List<Map<String, Object>>> searchStudentsWithPagination(
             @RequestParam String searchTerm,
@@ -93,12 +102,6 @@ public class SchoolController {
     }
 
 
-   /* @GetMapping("/students/search")
-    public ResponseEntity<List<Map<String, Object>>> searchStudents(
-            @RequestParam String searchTerm) {
-        return ResponseEntity.ok(schoolService.searchStudents(searchTerm));
-    }
-*/
     @PostMapping("/students/filter")
     public ResponseEntity<List<Map<String, Object>>> filterStudents(
             @RequestBody StudentFilterDTO filterDTO) {

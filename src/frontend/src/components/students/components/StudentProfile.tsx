@@ -1,3 +1,4 @@
+// StudentProfile.tsx
 import React, { useState, useEffect } from 'react';
 import {
     Card,
@@ -10,7 +11,8 @@ import {
     Typography,
     Form,
     Alert,
-    Switch
+    Switch,
+    message
 } from 'antd';
 import {
     UserOutlined,
@@ -21,11 +23,13 @@ import {
     TeamOutlined
 } from '@ant-design/icons';
 import { Student } from '../../../lib/types';
-import { getClasses, getStreams } from '../../../lib/api';
+import { getClasses, getStreams, deleteStudent, toggleStudentStatus } from '../../../lib/api';
 import UpdateTab from './UpdateTab';
 import ParentsTab from './ParentsTab';
 import PersonalTab from './PersonalTab';
 import AcademicTab from './AcademicTab';
+import PopConfirm from "../../../utils/ui/PopConfirm.tsx";
+
 
 const { Title, Text } = Typography;
 
@@ -116,8 +120,39 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
 
 
     const handleToggleStatus = async () => {
-        console.log('Toggling status of:' + student.fullName)
+        setLoading(true)
+        try {
+            const response = await toggleStudentStatus(student.id || 0);
+            if (response && response.data) {
+                message.success(`Successfully toggled status of: ${student.fullName}`);
+                form.setFieldsValue({status: !student.status});
+                // Update student object with the new status from the response
+                student.status = !student.status;
+            }
+
+        }
+        catch (error) {
+            console.error("Error toggling student status:", error);
+            setAlert({ type: 'error', message: `Failed to toggle status for student: ${student.fullName}` });
+        }finally {
+            setLoading(false);
+        }
     };
+
+    const handleDeleteStudent = async () => {
+        setLoading(true);
+        try {
+            await deleteStudent(student.id || 0);
+            message.success(`Successfully Deleted student: ${student.fullName}`);
+            onBack(); // Navigate back to the list of student
+        } catch (error) {
+            console.error("Error deleting student:", error);
+            setAlert({ type: 'error', message: `Failed to delete student: ${student.fullName}` });
+        }finally {
+            setLoading(false);
+        }
+    };
+
     const handleEditModeToggle = () => {
         setEditMode(!editMode);
         setAlert({ type: null, message: null })
@@ -272,6 +307,20 @@ const StudentProfile: React.FC<StudentProfileProps> = ({ student, onBack }) => {
                         )}
                     </Tag>
                 </Tooltip>
+                <PopConfirm
+                    title={`Delete ${student?.fullName}`}
+                    description={`Are you sure you want to delete student: ${student?.fullName}?`}
+                    onConfirm={handleDeleteStudent}
+                    okText="Yes, Delete"
+                    cancelText="No"
+                    confirmButtonProps={{
+                        danger: true,
+                        type: "primary"
+                    }}
+                >
+                    <Button danger>Delete Student</Button>
+                </PopConfirm>
+
             </Space>
             <Tabs defaultActiveKey="personal" items={tabItems} />
         </Card>

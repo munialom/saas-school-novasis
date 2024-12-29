@@ -19,6 +19,12 @@ public class SchoolService {
 
     private final ObjectMapper objectMapper;
 
+    public Map<String, Object> deleteStudent(int id){
+        return schoolRepository.deleteStudent(id);
+    }
+    public  Map<String, Object> toggleStudentStatus(int id) {
+        return schoolRepository.toggleStudentStatus(id);
+    }
 
     public List<Map<String, Object>> searchStudentsWithPagination(String searchTerm, int pageNumber) {
         return Optional.ofNullable(searchTerm)

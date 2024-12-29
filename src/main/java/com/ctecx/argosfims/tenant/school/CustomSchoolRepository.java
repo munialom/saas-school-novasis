@@ -7,6 +7,9 @@ public interface CustomSchoolRepository {
 
     List<Map<String, Object>> searchStudentsWithPagination(String searchTerm, int pageNumber);
     //Delete methods
+    //New Toggle Status Method
+    Map<String, Object> toggleStudentStatus(int id);
+    Map<String, Object> deleteStudent(int id);
     Map<String, Object> deleteStream(int id);
     Map<String, Object> deleteClass(int id);
 
