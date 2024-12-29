@@ -4,7 +4,6 @@ import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { searchStudentsWithPagination } from '../../../lib/api';
 import { Student, StudentSearchResponse } from '../../../lib/types';
-
 import type { InputRef } from 'antd';
 
 
@@ -27,32 +26,40 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const [totalRecords, setTotalRecords] = useState(0);
     const searchInputRef: MutableRefObject<InputRef | null> = useRef(null);
 
+
     const loadStudents = useCallback(async (search: string, page: number) => {
+        console.log("loadStudents called with:", { search, page });
         setLoading(true);
         try {
             const response = await searchStudentsWithPagination(search, page);
+            console.log("API response:", response);
+
             if (response && response.data) {
-                const { records, totalRecords } = response.data as StudentSearchResponse;
-                const formattedStudents: Student[] =  (records || []).map((item: any) => ({
-                    id: item.Id,
-                    admissionNumber: item.AdmissionNumber,
-                    fullName: item.FullName,
-                    gender: item.Gender,
-                    location: item.Location,
-                    admission: item.Admission,
-                    mode: item.Mode,
-                    status: item.Status === 'Active',
-                    yearOf: item.YearOf,
+                const { records = [], totalRecords } = response.data as StudentSearchResponse;
+                console.log("API data:", { records, totalRecords });
+
+                const formattedStudents: Student[] = records.map((item:any) => ({
+                    id: item?.Id,
+                    admissionNumber: item?.AdmissionNumber,
+                    fullName: item?.FullName,
+                    gender: item?.Gender,
+                    location: item?.Location,
+                    admission: item?.Admission,
+                    mode: item?.Mode,
+                    status: item?.Status === 'Active',
+                    yearOf: item?.YearOf,
                     studentClass: {
-                        className: item.ClassName
+                        className: item?.ClassName
                     },
                     studentStream: {
-                        streamName: item.StreamName
+                        streamName: item?.StreamName
                     },
-                    createdAt: item.CreatedAt,
-                    createdBy: item.CreatedBy,
-                    TotalRecords: item.TotalRecords
+                    createdAt: item?.CreatedAt,
+                    createdBy: item?.CreatedBy,
+                    TotalRecords: item?.TotalRecords
                 }));
+
+                console.log("Formatted students:", formattedStudents);
                 setStudents(formattedStudents);
                 setTotalRecords(totalRecords);
 
@@ -74,24 +81,28 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             }
         } catch (error) {
             console.error('Error searching students:', error);
-            setAlert({ type: 'error', message: 'Failed to load student data' })
+            setAlert({ type: 'error', message: 'Failed to load student data' });
         } finally {
             setLoading(false);
+            console.log("loadStudents completed, loading:", loading);
         }
     }, []);
 
+
+
     useEffect(() => {
         loadStudents(searchText, currentPage);
+        console.log("useEffect - searchText:", searchText, "currentPage:", currentPage);
         //load data on mounted
         if(!searchText){
             loadStudents('', 1)
         }
     }, [searchText, currentPage, loadStudents]);
 
-
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
+
 
     const handleToggleStatus = async (record: Student) => {
         console.log('toggled status of: ' + record.fullName);
@@ -204,7 +215,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                         color={status ? "success" : "error"}
                         style={{ cursor: 'pointer' }}
                         onClick={() => handleToggleStatus(record)}
-
                     >
                         {status ? 'Active' : 'Inactive'}
                     </Tag>
@@ -226,7 +236,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             dataIndex: 'createdBy',
             key: 'createdBy',
         },
-
         {
             title: 'Action',
             key: 'action',
@@ -249,6 +258,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         setSearchText(value);
         setCurrentPage(1);
     };
+
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
