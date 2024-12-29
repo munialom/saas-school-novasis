@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback, type MutableRefObject } from 'react';
-import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert, Pagination } from 'antd';
+import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert, Pagination, Row, Col } from 'antd';
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { searchStudentsWithPagination } from '../../../lib/api';
-import { Student } from '../../../lib/types';
+import { Student, StudentSearchResponse } from '../../../lib/types';
 
 import type { InputRef } from 'antd';
+
 
 interface StudentTableProps {
     onViewStudent: (student: Student) => void;
@@ -31,8 +32,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         try {
             const response = await searchStudentsWithPagination(search, page);
             if (response && response.data) {
-                const { records, totalRecords } = response.data;
-                const formattedStudents: Student[] = records.map((item: any) => ({
+                const { records, totalRecords } = response.data as StudentSearchResponse;
+                const formattedStudents: Student[] =  (records || []).map((item: any) => ({
                     id: item.Id,
                     admissionNumber: item.AdmissionNumber,
                     fullName: item.FullName,
@@ -79,9 +80,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         }
     }, []);
 
-
     useEffect(() => {
         loadStudents(searchText, currentPage);
+        //load data on mounted
+        if(!searchText){
+            loadStudents('', 1)
+        }
     }, [searchText, currentPage, loadStudents]);
 
 
@@ -267,20 +271,25 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     style={{ marginBottom: 16 }}
                 />
             )}
-            <Space direction="horizontal" style={{ width: '100%', marginBottom: 16 }} size="small" >
-                <Input
-                    ref={searchInputRef}
-                    placeholder="Search Student by Name or Admission Number"
-                    allowClear
-                    value={searchText}
-                    onChange={handleSearchChange}
-                    style={{ width: '100%' }}
-                />
-                <Space>
-                    <Button type="primary" onClick={handleExport}>Export</Button>
-                    <Button type="primary">Print</Button>
-                </Space>
-            </Space>
+            <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                <Col md={11}>
+                    <Input
+                        ref={searchInputRef}
+                        placeholder="Search Student by Name or Admission Number"
+                        allowClear
+                        value={searchText}
+                        onChange={handleSearchChange}
+                        prefix={<SearchOutlined />}
+                        style={{ width: '100%' }}
+                    />
+                </Col>
+                <Col md={13}>
+                    <Space style={{ float: 'right'}}>
+                        <Button type="primary" onClick={handleExport}>Export</Button>
+                        <Button type="primary">Print</Button>
+                    </Space>
+                </Col>
+            </Row>
 
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
                 <Table
@@ -305,7 +314,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     pageSize={8}
                     total={totalRecords}
                     onChange={handlePageChange}
-                    style={{ float: 'right' }}
+                    style={{ float: 'right'}}
                 />
             </Space>
         </Card>
