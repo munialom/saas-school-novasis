@@ -1,11 +1,12 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import {
     StudentDTO,
     ParentDetails,
     ClassUpdateDTO,
     StreamUpdateDTO,
     StreamDeleteDTO,
-    ClassDeleteDTO
+    ClassDeleteDTO,
+    StudentSearchResponse
 } from "./types";
 
 const getApiBaseUrl = (): string => {
@@ -57,16 +58,17 @@ export const logout = async (): Promise<any> => {
 };
 
 
-export const getStudents = async (): Promise<any> => {
-    try {
-        return await axios.get(
-            `${getApiBaseUrl()}/api/v1/school/students`,
-            getAuthConfig()
-        );
-    } catch (e) {
-        throw e;
-    }
-};
+// Removed old getStudents
+// export const getStudents = async (): Promise<any> => {
+//     try {
+//         return await axios.get(
+//             `${getApiBaseUrl()}/api/v1/school/students`,
+//             getAuthConfig()
+//         );
+//     } catch (e) {
+//         throw e;
+//     }
+// };
 
 export const saveStudent = async (student: StudentDTO): Promise<any> => {
     try {
@@ -232,6 +234,20 @@ export const deleteClass = async (classId: number): Promise<any> => {
                 data: deleteDto,
             }
         );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const searchStudentsWithPagination = async (searchTerm: string, pageNumber: number): Promise<AxiosResponse<StudentSearchResponse>> => {
+    try {
+        return await axios.get<StudentSearchResponse>(`${getApiBaseUrl()}/api/v1/school/students/search`, {
+            ...getAuthConfig(),
+            params: {
+                searchTerm: searchTerm,
+                pageNumber: pageNumber,
+            },
+        });
     } catch (error) {
         throw error;
     }

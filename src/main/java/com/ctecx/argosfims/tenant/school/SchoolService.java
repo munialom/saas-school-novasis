@@ -20,6 +20,13 @@ public class SchoolService {
     private final ObjectMapper objectMapper;
 
 
+    public List<Map<String, Object>> searchStudentsWithPagination(String searchTerm, int pageNumber) {
+        return Optional.ofNullable(searchTerm)
+                .map(term -> schoolRepository.searchStudentsWithPagination(term, pageNumber))
+                .orElse(Collections.emptyList());
+    }
+
+
     public  Map<String, Object> deleteStream(StreamDeleteDTO streamDeleteDTO){
         return Optional.ofNullable(streamDeleteDTO)
                 .filter(dto -> dto.getId() != null)

@@ -5,7 +5,7 @@ import java.util.Map;
 
 public interface CustomSchoolRepository {
 
-
+    List<Map<String, Object>> searchStudentsWithPagination(String searchTerm, int pageNumber);
     //Delete methods
     Map<String, Object> deleteStream(int id);
     Map<String, Object> deleteClass(int id);

@@ -24,6 +24,10 @@ public class CustomSchoolRepositoryImpl implements CustomSchoolRepository {
         return tenantJdbcTemplateConfig.getTenantJdbcTemplate();
     }
 
+    @Override
+    public List<Map<String, Object>> searchStudentsWithPagination(String searchTerm, int pageNumber) {
+        return getJdbcTemplate().queryForList("CALL sp_SearchPaginateStudents(?, ?)", searchTerm, pageNumber);
+    }
 
     @Override
     public Map<String, Object> deleteStream(int id) {

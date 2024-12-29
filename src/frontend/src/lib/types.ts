@@ -1,3 +1,4 @@
+// types.ts
 export interface Student {
     id?: number;
     admissionNumber: string;
@@ -18,6 +19,7 @@ export interface Student {
     createdBy?: string;
     updatedAt?: string;
     updatedBy?: string;
+    TotalRecords?: number;
 }
 
 export interface StudentDTO {
@@ -32,6 +34,11 @@ export interface StudentDTO {
     mode: string | null;
     yearOf: number | null;
 }
+export interface StudentSearchResponse {
+    records: Student[],
+    totalRecords: number
+}
+
 
 export interface ParentDetails {
     fullName: string;
@@ -68,7 +75,6 @@ export interface Stream {
     updatedBy?: string;
 }
 
-// types.ts
 
 export interface ClassUpdateDTO {
     id: number;
