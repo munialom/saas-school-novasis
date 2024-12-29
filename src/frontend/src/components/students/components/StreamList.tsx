@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Tag, Alert, Button, Modal, Form, Input, Switch } from 'antd';
+import { Table, Card, Tag, Alert, Button, Modal, Form, Input, Switch, Popconfirm, message } from 'antd';
 import { getStreams, updateStream, deleteStream } from '../../../lib/api';
 import { Stream, StreamUpdateDTO, StreamDeleteDTO } from "../../../lib/types";
 
@@ -12,7 +12,9 @@ const StreamList: React.FC = () => {
     });
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editingStream, setEditingStream] = useState<Stream | null>(null);
+    const [updateLoading, setUpdateLoading] = useState(false);
     const [form] = Form.useForm();
+
 
     useEffect(() => {
         const fetchStreams = async () => {
@@ -63,6 +65,7 @@ const StreamList: React.FC = () => {
 
     const handleEditOk = async () => {
         try {
+            setUpdateLoading(true);
             const values = await form.validateFields();
             if (editingStream) {
                 const updatedStream: StreamUpdateDTO = {
@@ -71,6 +74,7 @@ const StreamList: React.FC = () => {
                     status: values.status,
                 };
                 await updateStream(updatedStream);
+                message.success('Stream updated successfully');
                 const response = await getStreams();
                 if (response && response.data && Array.isArray(response.data)) {
                     const formattedStreams = response.data.map((item: any) => ({
@@ -83,14 +87,18 @@ const StreamList: React.FC = () => {
                         updatedBy: item.UpdatedBy,
                     }));
                     setStreams(formattedStreams);
-                    setAlert({ type: 'success', message: 'Stream updated successfully' });
+
                 }
                 handleCancelEdit();
             }
 
         } catch (error) {
             console.error("Error updating stream:", error);
-            setAlert({ type: 'error', message: 'Failed to update stream' })
+            setAlert({ type: 'error', message: 'Failed to update stream' });
+            message.error('Failed to update stream')
+        }
+        finally {
+            setUpdateLoading(false);
         }
     }
 
@@ -98,6 +106,7 @@ const StreamList: React.FC = () => {
         try {
             const deleteDto: StreamDeleteDTO = { id: record.id };
             await deleteStream(deleteDto.id);
+            message.success('Stream deleted successfully')
             const response = await getStreams();
             if (response && response.data && Array.isArray(response.data)) {
                 const formattedStreams = response.data.map((item: any) => ({
@@ -110,13 +119,15 @@ const StreamList: React.FC = () => {
                     updatedBy: item.UpdatedBy,
                 }));
                 setStreams(formattedStreams);
-                setAlert({ type: 'success', message: 'Stream deleted successfully' });
             }
+
         } catch (error) {
             console.error("Error deleting stream:", error);
             setAlert({ type: 'error', message: 'Failed to delete stream' })
+            message.error('Failed to delete stream');
         }
     };
+
 
     const columns = [
         {
@@ -161,7 +172,16 @@ const StreamList: React.FC = () => {
             render: (_: any, record: Stream) => (
                 <>
                     <Button type="link" onClick={() => handleEdit(record)}>Edit</Button>
-                    <Button type="link" danger onClick={() => handleDelete(record)}>Delete</Button>
+                    <Popconfirm
+                        title="Delete the stream"
+                        description="Are you sure to delete this stream?"
+                        onConfirm={()=>handleDelete(record)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button type="link" danger>Delete</Button>
+                    </Popconfirm>
+
                 </>
             ),
         },
@@ -197,6 +217,7 @@ const StreamList: React.FC = () => {
                 onOk={handleEditOk}
                 onCancel={handleCancelEdit}
                 okText="Save"
+                okButtonProps={{ loading: updateLoading }}
             >
                 <Form form={form} layout="vertical">
                     <Form.Item

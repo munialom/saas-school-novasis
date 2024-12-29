@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Tag, Alert, Button, Modal, Form, Input, Switch } from 'antd';
+import { Table, Card, Tag, Alert, Button, Modal, Form, Input, Switch, Popconfirm, message } from 'antd';
 import { getClasses, updateClass, deleteClass } from '../../../lib/api';
 import { Class, ClassUpdateDTO, ClassDeleteDTO } from "../../../lib/types";
 
@@ -12,7 +12,9 @@ const ClassList: React.FC = () => {
     });
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editingClass, setEditingClass] = useState<Class | null>(null);
+    const [updateLoading, setUpdateLoading] = useState(false); // Added loading state for update button
     const [form] = Form.useForm();
+
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -61,6 +63,7 @@ const ClassList: React.FC = () => {
 
     const handleEditOk = async () => {
         try {
+            setUpdateLoading(true); // Set loading state to true
             const values = await form.validateFields();
             if (editingClass) {
                 const updatedClass: ClassUpdateDTO = {
@@ -69,6 +72,7 @@ const ClassList: React.FC = () => {
                     status: values.status,
                 };
                 await updateClass(updatedClass);
+                message.success('Class updated successfully');
 
                 // Refresh Classes after update
                 const response = await getClasses();
@@ -83,21 +87,26 @@ const ClassList: React.FC = () => {
                         updatedBy: item.UpdatedBy,
                     }));
                     setClasses(formattedClasses);
-                    setAlert({ type: 'success', message: 'Class updated successfully' });
+
                 }
 
                 handleCancelEdit();
             }
 
+
         } catch (error) {
             console.error("Error updating class:", error);
             setAlert({ type: 'error', message: 'Failed to update class' })
+            message.error('Failed to update class')
+        } finally {
+            setUpdateLoading(false); // Set loading state to false after update or fail
         }
     }
     const handleDelete = async (record: Class) => {
         try {
             const deleteDto: ClassDeleteDTO = { id: record.id };
             await deleteClass(deleteDto.id);
+            message.success('Class deleted successfully');
             const response = await getClasses();
             if (response && response.data && Array.isArray(response.data)) {
                 const formattedClasses = response.data.map((item: any) => ({
@@ -110,12 +119,12 @@ const ClassList: React.FC = () => {
                     updatedBy: item.UpdatedBy,
                 }));
                 setClasses(formattedClasses);
-                setAlert({ type: 'success', message: 'Class deleted successfully' });
             }
 
         } catch (error) {
             console.error("Error deleting class:", error);
             setAlert({ type: 'error', message: 'Failed to delete class' })
+            message.error('Failed to delete class')
         }
     };
 
@@ -162,7 +171,16 @@ const ClassList: React.FC = () => {
             render: (_: any, record: Class) => (
                 <>
                     <Button type="link" onClick={() => handleEdit(record)}>Edit</Button>
-                    <Button type="link" danger onClick={() => handleDelete(record)}>Delete</Button>
+                    <Popconfirm
+                        title="Delete the class"
+                        description="Are you sure to delete this class?"
+                        onConfirm={()=>handleDelete(record)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button type="link" danger >Delete</Button>
+                    </Popconfirm>
+
                 </>
             ),
         },
@@ -198,6 +216,7 @@ const ClassList: React.FC = () => {
                 onOk={handleEditOk}
                 onCancel={handleCancelEdit}
                 okText="Save"
+                okButtonProps={{ loading: updateLoading }} // Apply loading state to the button
             >
                 <Form form={form} layout="vertical">
                     <Form.Item
