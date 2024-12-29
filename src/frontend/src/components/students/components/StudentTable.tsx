@@ -34,7 +34,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             console.log("API response:", response);
 
             if (response && response.data) {
-                const { records = [] } = response.data as StudentSearchResponse;
+                const  { records = [], ...rest } = response.data;
+                const totalRecords = records[0]?.TotalRecords || 0
+                console.log("API data:", { records, totalRecords });
+
 
                 const formattedStudents: Student[] = records.map((item: any) => ({
                     id: item.Id,
@@ -56,14 +59,15 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     createdBy: item.CreatedBy,
                     TotalRecords: item.TotalRecords
                 }));
-                //set the total number of record, we get from the first record
-                setTotalRecords(formattedStudents[0]?.TotalRecords || 0);
 
                 console.log("Formatted students:", formattedStudents);
                 setStudents(formattedStudents);
+                setTotalRecords(totalRecords);
+
 
                 const classMap: Record<string, any> = {};
                 const streamMap: Record<string, any> = {};
+
 
                 formattedStudents.forEach((student: Student) => {
                     if (student.studentClass && student.studentClass.className) {
@@ -86,26 +90,22 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         }
     }, []);
 
-
     useEffect(() => {
         loadStudents(searchText, currentPage);
         console.log("useEffect - searchText:", searchText, "currentPage:", currentPage);
         //load data on mounted
         if(!searchText){
-            loadStudents('', 1);
+            loadStudents('', 1)
         }
     }, [searchText, currentPage, loadStudents]);
-
 
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
 
-
     const handleToggleStatus = async (record: Student) => {
         console.log('toggled status of: ' + record.fullName);
     };
-
 
 
     const rowSelection = {
@@ -254,12 +254,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     ];
 
 
+
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchText(value);
         setCurrentPage(1);
     };
-
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -268,7 +268,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const handleExport = () => {
 
     };
-
 
 
     return (
