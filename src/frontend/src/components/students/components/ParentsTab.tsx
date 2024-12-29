@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Form, Input, Button, List, Space, Cascader, Alert as AntdAlert, Descriptions } from 'antd';
+import {
+    Card,
+    Row,
+    Col,
+    Form,
+    Input,
+    Button,
+    List,
+    Space,
+    Cascader,
+    Alert as AntdAlert,
+    Descriptions,
+    Divider
+} from 'antd';
 import { ParentDetails, ParentResponse } from '../../../lib/types';
 import { PlusOutlined } from '@ant-design/icons';
 import { saveParents, getStudentParents } from '../../../lib/api';
@@ -25,19 +38,20 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                                                    setAlert,
                                                    alert,
                                                }) => {
-    const [parents, setParents] = useState< {
+    const [parents, setParents] = useState<{
         parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
         parentDetails: ParentDetails
     }[]>([]);
     const [existingParentsData, setExistingParentsData] = useState<ParentResponse[] | null>(null);
 
+
     useEffect(() => {
         const fetchParentsData = async () => {
-            if(studentId){
+            if (studentId) {
                 try {
                     const response = await getStudentParents(studentId);
                     if (response && response.data) {
-                        if(Array.isArray(response.data)){
+                        if (Array.isArray(response.data)) {
                             setExistingParentsData(response.data);
                         } else {
                             setExistingParentsData([response.data])
@@ -48,7 +62,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                     }
                 } catch (error) {
                     console.log('Error fetching parents data:', error)
-                    setAlert({type: 'error', message: 'Failed to load existing parents'})
+                    setAlert({ type: 'error', message: 'Failed to load existing parents' })
                     setExistingParentsData(null)
                 }
             }
@@ -56,18 +70,18 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
         };
 
         fetchParentsData();
-    }, [studentId,setAlert]);
+    }, [studentId, setAlert]);
 
     useEffect(() => {
-        if(existingParentsData) {
+        if (existingParentsData) {
             try {
                 const initialParents = existingParentsData.map((parent) => ({
                     parentType: parent.parentType,
-                    parentDetails:  typeof parent.parentDetails === 'string' ? JSON.parse(parent.parentDetails) as ParentDetails : parent.parentDetails as ParentDetails
+                    parentDetails: typeof parent.parentDetails === 'string' ? JSON.parse(parent.parentDetails) as ParentDetails : parent.parentDetails as ParentDetails
                 }))
                 setParents(initialParents);
 
-            } catch (e){
+            } catch (e) {
                 console.log("could not process data")
                 setAlert({ type: 'error', message: 'Could not process parents data' });
                 setExistingParentsData(null)
@@ -123,7 +137,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
     const handleSaveParents = async () => {
         setLoading(true)
         try {
-            const parentData = parents.map((parent)=> ({
+            const parentData = parents.map((parent) => ({
                     parentType: parent.parentType,
                     parentDetails: JSON.stringify(parent.parentDetails),
                     studentId: studentId
@@ -161,118 +175,10 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
-    const renderParentData = () => {
-        if (!existingParentsData || existingParentsData.length === 0) {
-            return (
-                <List
-                    dataSource={parents}
-                    renderItem={(item, index) => (
-                        <List.Item
-                            key={index}
-                            actions={[
-                                <Button
-                                    type="text"
-                                    key="remove"
-                                    onClick={() => handleRemoveParent(index)}
-                                >
-                                    Remove
-                                </Button>
-                            ]}
-                        >
-                            <Row gutter={[16, 16]} style={{ width: '100%' }}>
-                                <Col span={6}>
-                                    <Form.Item
-                                        label="Parent Type"
-                                        rules={[{ required: true, message: 'Please select parent type' }]}
-                                    >
-                                        <Cascader
-                                            options={[
-                                                { value: 'MOTHER', label: 'Mother' },
-                                                { value: 'FATHER', label: 'Father' },
-                                                { value: 'GUARDIAN', label: 'Guardian' }
-                                            ]}
-                                            placeholder="Select parent type"
-                                            onChange={(value) => handleParentTypeChange(index, value ? value[0] : null)}
-                                            value={[item.parentType]}
-                                        />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item
-                                        label="Full Name"
-                                        rules={[{ required: true, message: 'Please enter parent full name' }]}
-                                    >
-                                        <Input
-                                            placeholder="Enter full name"
-                                            value={item.parentDetails.fullName}
-                                            onChange={(e) => handleParentDetailsChange(index, 'fullName', e.target.value)}
-                                        />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item
-                                        label="Phone Numbers"
-                                        rules={[{ required: true, message: 'Please enter phone number' }]}
-                                    >
-                                        <Space direction="vertical" style={{ width: '100%' }}>
-                                            {item.parentDetails.phoneNumbers.map((phone, phoneIndex) => (
-                                                <Space key={phoneIndex} style={{alignItems: "center"}}>
-                                                    <Input
-                                                        placeholder="Enter phone number"
-                                                        value={phone}
-                                                        onChange={(e) => handleParentDetailsChange(index, 'phoneNumbers', item.parentDetails.phoneNumbers.map((p, i) => i === phoneIndex ? e.target.value : p))}
-                                                        style={{flex:1}}
-                                                    />
-                                                    <Button type='text' onClick={() => handleRemovePhone(index, phoneIndex)} >Remove</Button>
-                                                </Space>
-                                            ))}
-                                            <Button type='dashed' onClick={() => addPhoneNumber(index)} style={{ width: '100%' }}> <PlusOutlined /> Add Phone </Button>
-                                        </Space>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item
-                                        label="Email Address"
-                                        rules={[{ required: false, message: 'Please enter email address' }]}
-                                    >
-                                        <Input
-                                            placeholder="Enter email address"
-                                            value={item.parentDetails.emailAddress}
-                                            onChange={(e) => handleParentDetailsChange(index, 'emailAddress', e.target.value)}
-                                        />
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </List.Item>
-                    )}
-                />
-            )
-        } else {
 
-            return (
-                <List
-                    dataSource={existingParentsData}
-                    renderItem={(item) => (
-                        <List.Item key={item.id}>
-                            <Descriptions title={`${item.parentType} Information`} layout="vertical" >
-                                <Descriptions.Item label="Full Name">
-                                    {item.parentDetails &&  (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).fullName : (item.parentDetails as ParentDetails).fullName) || 'N/A'}
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Phone Numbers">
-                                    {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).phoneNumbers?.join(', ') || 'N/A' : (item.parentDetails as ParentDetails).phoneNumbers?.join(', ') || 'N/A') }
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Email Address">
-                                    {item.parentDetails && ( typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).emailAddress || 'N/A' : (item.parentDetails as ParentDetails).emailAddress || 'N/A')}
-                                </Descriptions.Item>
-                            </Descriptions>
-                        </List.Item>
-                    )}
-                />
-            )
-        }
-    }
+
     return (
-        <Card title="Add Parents Details">
+        <Card title="Parents Details">
             {
                 alert.type && alert.message && (
                     <AntdAlert
@@ -289,21 +195,124 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                 form={parentForm}
                 layout="vertical"
             >
-                {renderParentData()}
-                {!existingParentsData || existingParentsData.length === 0 ? (
-                    <>
-                        <Button type="dashed" onClick={handleAddParent} style={{ width: '100%' }} icon={<PlusOutlined/>}>
-                            Add Parent Data
-                        </Button>
-                        <Form.Item>
-                            {parents.length > 0 && (
-                                <Button type="primary" onClick={handleSaveParents} loading={loading} style={{ marginTop: 16 }}>
-                                    Save Parents
-                                </Button>
+                <Card title="Add Parent Details" style={{ marginBottom: 20 }}>
+                    <List
+                        dataSource={parents}
+                        renderItem={(item, index) => (
+                            <List.Item
+                                key={index}
+                                actions={[
+                                    <Button
+                                        type="text"
+                                        key="remove"
+                                        onClick={() => handleRemoveParent(index)}
+                                    >
+                                        Remove
+                                    </Button>
+                                ]}
+                            >
+                                <Row gutter={[16, 16]} style={{ width: '100%' }}>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Parent Type"
+                                            rules={[{ required: true, message: 'Please select parent type' }]}
+                                        >
+                                            <Cascader
+                                                options={[
+                                                    { value: 'MOTHER', label: 'Mother' },
+                                                    { value: 'FATHER', label: 'Father' },
+                                                    { value: 'GUARDIAN', label: 'Guardian' }
+                                                ]}
+                                                placeholder="Select parent type"
+                                                onChange={(value) => handleParentTypeChange(index, value ? value[0] : null)}
+                                                value={[item.parentType]}
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Full Name"
+                                            rules={[{ required: true, message: 'Please enter parent full name' }]}
+                                        >
+                                            <Input
+                                                placeholder="Enter full name"
+                                                value={item.parentDetails.fullName}
+                                                onChange={(e) => handleParentDetailsChange(index, 'fullName', e.target.value)}
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Phone Numbers"
+                                            rules={[{ required: true, message: 'Please enter phone number' }]}
+                                        >
+                                            <Space direction="vertical" style={{ width: '100%' }}>
+                                                {item.parentDetails.phoneNumbers.map((phone, phoneIndex) => (
+                                                    <Space key={phoneIndex} style={{ alignItems: "center" }}>
+                                                        <Input
+                                                            placeholder="Enter phone number"
+                                                            value={phone}
+                                                            onChange={(e) => handleParentDetailsChange(index, 'phoneNumbers', item.parentDetails.phoneNumbers.map((p, i) => i === phoneIndex ? e.target.value : p))}
+                                                            style={{ flex: 1 }}
+                                                        />
+                                                        <Button type='text' onClick={() => handleRemovePhone(index, phoneIndex)} >Remove</Button>
+                                                    </Space>
+                                                ))}
+                                                <Button type='dashed' onClick={() => addPhoneNumber(index)} style={{ width: '100%' }}> <PlusOutlined /> Add Phone </Button>
+                                            </Space>
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Email Address"
+                                            rules={[{ required: false, message: 'Please enter email address' }]}
+                                        >
+                                            <Input
+                                                placeholder="Enter email address"
+                                                value={item.parentDetails.emailAddress}
+                                                onChange={(e) => handleParentDetailsChange(index, 'emailAddress', e.target.value)}
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                </Row>
+                            </List.Item>
+                        )}
+                    />
+                    <Button type="dashed" onClick={handleAddParent} style={{ width: '100%', marginTop: 10 }} icon={<PlusOutlined />} >
+                        Add Parent Data
+                    </Button>
+                    <Form.Item style={{ marginTop: 16 }}>
+                        {parents.length > 0 && (
+                            <Button type="primary" onClick={handleSaveParents} loading={loading} style={{ marginTop: 16 }}>
+                                Save Parents
+                            </Button>
+                        )}
+                    </Form.Item>
+                </Card>
+                <Divider dashed />
+
+                {existingParentsData && existingParentsData.length > 0 && (
+                    <Card title="Existing Parent Details">
+                        <List
+                            dataSource={existingParentsData}
+                            renderItem={(item) => (
+                                <List.Item key={item.id}>
+                                    <Descriptions title={`${item.parentType} Information`} layout="vertical" >
+                                        <Descriptions.Item label="Full Name">
+                                            {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).fullName : (item.parentDetails as ParentDetails).fullName) || 'N/A'}
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Phone Numbers">
+                                            {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).phoneNumbers?.join(', ') || 'N/A' : (item.parentDetails as ParentDetails).phoneNumbers?.join(', ') || 'N/A')}
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Email Address">
+                                            {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).emailAddress || 'N/A' : (item.parentDetails as ParentDetails).emailAddress || 'N/A')}
+                                        </Descriptions.Item>
+                                    </Descriptions>
+                                </List.Item>
                             )}
-                        </Form.Item>
-                    </>
-                ) : null}
+                        />
+                    </Card>
+                )}
 
             </Form>
         </Card>
