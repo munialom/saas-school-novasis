@@ -1,5 +1,7 @@
 package com.ctecx.argosfims.tenant.school;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -7,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -14,9 +17,30 @@ public class SchoolService {
 
     private final CustomSchoolRepository schoolRepository;
 
-
+    private final ObjectMapper objectMapper;
     public List<Map<String, Object>> getStudentParents(int id) {
-        return schoolRepository.getStudentParents(id);
+        List<Map<String, Object>> parents = schoolRepository.getStudentParents(id);
+
+        return parents.stream()
+                .map(parent -> {
+                    String parentDetailsString = (String) parent.get("ParentDetails");
+
+                    if (parentDetailsString != null) {
+                        try {
+                            //remove backslashes
+                            String cleanedString = parentDetailsString.replace("\\", "");
+                            Map<String, Object> parentDetails = objectMapper.readValue(cleanedString, Map.class);
+                            parent.put("ParentDetails", parentDetails);
+                        } catch (JsonProcessingException e) {
+                            System.out.println("could not process data "+e); // Log error
+                            parent.put("ParentDetails", null);
+                        }
+                    } else {
+                        parent.put("ParentDetails", null);
+                    }
+                    return parent;
+                })
+                .collect(Collectors.toList());
     }
 
     public List<Map<String, Object>> getAllClasses() {

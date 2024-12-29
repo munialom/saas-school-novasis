@@ -40,16 +40,15 @@ export interface ParentDetails {
 }
 
 export interface ParentResponse {
-    id: number;
-    created_date: string;
-    created_by: string;
-    last_modified_date: string;
-    modified_by: string;
-    parentDetails: ParentDetails | string;
-    parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
-    student_id: number
+    Id: number;
+    CreatedDate: string;
+    CreatedBy: string;
+    LastModifiedDate: string;
+    ModifiedBy: string;
+    ParentDetails: ParentDetails | null;
+    ParentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
+    StudentId: number
 }
-
 export interface Class {
     id: number;
     className: string;

@@ -11,7 +11,7 @@ import {
     Cascader,
     Alert as AntdAlert,
     Descriptions,
-    Divider
+    Modal
 } from 'antd';
 import { ParentDetails, ParentResponse } from '../../../lib/types';
 import { PlusOutlined } from '@ant-design/icons';
@@ -43,6 +43,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
         parentDetails: ParentDetails
     }[]>([]);
     const [existingParentsData, setExistingParentsData] = useState<ParentResponse[] | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
 
     useEffect(() => {
@@ -131,6 +132,8 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
             ))
             await saveParents(parentData);
             setAlert({ type: 'success', message: 'Parents details saved successfully' });
+            setIsModalOpen(false)
+            setParents([]) //clear form after saving
         } catch (error) {
             console.log(error)
             setAlert({ type: 'error', message: 'Failed to save parents, please check input' });
@@ -158,6 +161,14 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
         });
     };
 
+    const showModal = () => {
+        setIsModalOpen(true);
+    };
+    const handleCancel = () => {
+        setIsModalOpen(false);
+        setParents([])
+    };
+
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
@@ -177,11 +188,22 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                     />
                 )
             }
-            <Form
-                form={parentForm}
-                layout="vertical"
+            <Button type="primary" onClick={showModal} style={{ marginBottom: 16 }}>
+                Add Parent Details
+            </Button>
+
+            <Modal
+                title="Add Parent Details"
+                open={isModalOpen}
+                onCancel={handleCancel}
+                footer={null}
+                width={800}
             >
-                <Card title="Add Parent Details" style={{ marginBottom: 20 }}>
+                <Form
+                    form={parentForm}
+                    layout="vertical"
+                >
+
                     <List
                         dataSource={parents}
                         renderItem={(item, index) => (
@@ -264,6 +286,7 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                             </List.Item>
                         )}
                     />
+
                     <Button type="dashed" onClick={handleAddParent} style={{ width: '100%', marginTop: 10 }} icon={<PlusOutlined />} >
                         Add Parent Data
                     </Button>
@@ -274,38 +297,36 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                             </Button>
                         )}
                     </Form.Item>
+                </Form>
+            </Modal>
+            {existingParentsData && existingParentsData.length > 0 && (
+                <Card title="Existing Parent Details">
+                    <List
+                        dataSource={existingParentsData}
+                        renderItem={(item) => {
+                            console.log("Rendering Existing Parent Item:", item)
+                            const parsedParentDetails = item.ParentDetails;
+                            return (
+                                <List.Item key={item.Id}>
+                                    <Descriptions title={`${item.ParentType} Information`} layout="vertical" >
+                                        <Descriptions.Item label="Full Name">
+                                            {parsedParentDetails?.fullName || 'N/A'}
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Phone Numbers">
+                                            {parsedParentDetails?.phoneNumbers?.join(', ') || 'N/A'}
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Email Address">
+                                            {parsedParentDetails?.emailAddress || 'N/A'}
+                                        </Descriptions.Item>
+                                    </Descriptions>
+                                </List.Item>
+                            )
+                        }}
+
+                    />
                 </Card>
-                <Divider dashed />
+            )}
 
-                {existingParentsData && existingParentsData.length > 0 && (
-                    <Card title="Existing Parent Details">
-                        <List
-                            dataSource={existingParentsData}
-                            renderItem={(item) => {
-                                console.log("Rendering Existing Parent Item:", item)
-                                const parsedParentDetails = typeof item.parentDetails === 'string' ? JSON.parse(item.parentDetails.replace(/\\/g, '')) as ParentDetails : item.parentDetails;
-                                return (
-                                    <List.Item key={item.id}>
-                                        <Descriptions title={`${item.parentType} Information`} layout="vertical" >
-                                            <Descriptions.Item label="Full Name">
-                                                {parsedParentDetails?.fullName || 'N/A'}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Phone Numbers">
-                                                {parsedParentDetails?.phoneNumbers?.join(', ') || 'N/A'}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Email Address">
-                                                {parsedParentDetails?.emailAddress || 'N/A'}
-                                            </Descriptions.Item>
-                                        </Descriptions>
-                                    </List.Item>
-                                )
-                            }}
-
-                        />
-                    </Card>
-                )}
-
-            </Form>
         </Card>
     );
 };
