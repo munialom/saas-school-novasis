@@ -188,127 +188,16 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                     />
                 )
             }
-
-
-            <Modal
-                title="Add Parent Details"
-                open={isModalOpen}
-                onCancel={handleCancel}
-                footer={null}
-                width={1000}
-                style={{ top: 20 }}
+            <Card
+                title= "Add Parents Data"
+                extra={<Button type="primary" onClick={showModal} >
+                    Add Parent Details
+                </Button>}
 
             >
-                <Card
-                    title= { <Button type="primary" onClick={showModal} >
-                        Add Parent Details
-                    </Button>}
-                    style={{ border: 'none', boxShadow: 'none' }}
-                >
-                    <Form
-                        form={parentForm}
-                        layout="vertical"
-                    >
 
-                        <List
-                            dataSource={parents}
-                            renderItem={(item, index) => (
-                                <List.Item
-                                    key={index}
-                                    actions={[
-                                        <Button
-                                            type="text"
-                                            key="remove"
-                                            onClick={() => handleRemoveParent(index)}
-                                        >
-                                            Remove
-                                        </Button>
-                                    ]}
-                                >
-                                    <Row gutter={[16, 16]} style={{ width: '100%' }}>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                label="Parent Type"
-                                                rules={[{ required: true, message: 'Please select parent type' }]}
-                                            >
-                                                <Cascader
-                                                    options={[
-                                                        { value: 'MOTHER', label: 'Mother' },
-                                                        { value: 'FATHER', label: 'Father' },
-                                                        { value: 'GUARDIAN', label: 'Guardian' }
-                                                    ]}
-                                                    placeholder="Select parent type"
-                                                    onChange={(value) => handleParentTypeChange(index, value ? value[0] : null)}
-                                                    value={[item.parentType]}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                label="Full Name"
-                                                rules={[{ required: true, message: 'Please enter parent full name' }]}
-                                            >
-                                                <Input
-                                                    placeholder="Enter full name"
-                                                    value={item.parentDetails.fullName}
-                                                    onChange={(e) => handleParentDetailsChange(index, 'fullName', e.target.value)}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                label="Phone Numbers"
-                                                rules={[{ required: true, message: 'Please enter phone number' }]}
-                                            >
-                                                <Space direction="vertical" style={{ width: '100%' }}>
-                                                    {item.parentDetails.phoneNumbers.map((phone, phoneIndex) => (
-                                                        <Space key={phoneIndex} style={{ alignItems: "center" }}>
-                                                            <Input
-                                                                placeholder="Enter phone number"
-                                                                value={phone}
-                                                                onChange={(e) => handleParentDetailsChange(index, 'phoneNumbers', item.parentDetails.phoneNumbers.map((p, i) => i === phoneIndex ? e.target.value : p))}
-                                                                style={{ flex: 1 }}
-                                                            />
-                                                            <Button type='text' onClick={() => handleRemovePhone(index, phoneIndex)} >Remove</Button>
-                                                        </Space>
-                                                    ))}
-                                                    <Button type='dashed' onClick={() => addPhoneNumber(index)} style={{ width: '100%' }}> <PlusOutlined /> Add Phone </Button>
-                                                </Space>
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                label="Email Address"
-                                                rules={[{ required: false, message: 'Please enter email address' }]}
-                                            >
-                                                <Input
-                                                    placeholder="Enter email address"
-                                                    value={item.parentDetails.emailAddress}
-                                                    onChange={(e) => handleParentDetailsChange(index, 'emailAddress', e.target.value)}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </List.Item>
-                            )}
-                        />
+                {existingParentsData && existingParentsData.length > 0 && (
 
-                        <Button type="dashed" onClick={handleAddParent} style={{ width: '100%', marginTop: 10 }} icon={<PlusOutlined />} >
-                            Add Parent Data
-                        </Button>
-                        <Form.Item style={{ marginTop: 16 }}>
-                            {parents.length > 0 && (
-                                <Button type="primary" onClick={handleSaveParents} loading={loading} style={{ marginTop: 16 }}>
-                                    Save Parents
-                                </Button>
-                            )}
-                        </Form.Item>
-                    </Form>
-                </Card>
-            </Modal>
-
-            {existingParentsData && existingParentsData.length > 0 && (
-                <Card title="Existing Parent Details">
                     <List
                         dataSource={existingParentsData}
                         renderItem={(item) => {
@@ -332,8 +221,119 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                         }}
 
                     />
-                </Card>
-            )}
+
+                )}
+            </Card>
+            <Modal
+                title="Add Parent Details"
+                open={isModalOpen}
+                onCancel={handleCancel}
+                footer={null}
+                width={1200}
+                style={{ top: 20 }}
+
+            >
+                <Form
+                    form={parentForm}
+                    layout="vertical"
+                >
+
+                    <List
+                        dataSource={parents}
+                        renderItem={(item, index) => (
+                            <List.Item
+                                key={index}
+                                actions={[
+                                    <Button
+                                        type="text"
+                                        key="remove"
+                                        onClick={() => handleRemoveParent(index)}
+                                    >
+                                        Remove
+                                    </Button>
+                                ]}
+                            >
+                                <Row gutter={[16, 16]} style={{ width: '100%' }}>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Parent Type"
+                                            rules={[{ required: true, message: 'Please select parent type' }]}
+                                        >
+                                            <Cascader
+                                                options={[
+                                                    { value: 'MOTHER', label: 'Mother' },
+                                                    { value: 'FATHER', label: 'Father' },
+                                                    { value: 'GUARDIAN', label: 'Guardian' }
+                                                ]}
+                                                placeholder="Select parent type"
+                                                onChange={(value) => handleParentTypeChange(index, value ? value[0] : null)}
+                                                value={[item.parentType]}
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Full Name"
+                                            rules={[{ required: true, message: 'Please enter parent full name' }]}
+                                        >
+                                            <Input
+                                                placeholder="Enter full name"
+                                                value={item.parentDetails.fullName}
+                                                onChange={(e) => handleParentDetailsChange(index, 'fullName', e.target.value)}
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Phone Numbers"
+                                            rules={[{ required: true, message: 'Please enter phone number' }]}
+                                        >
+                                            <Space direction="vertical" style={{ width: '100%' }}>
+                                                {item.parentDetails.phoneNumbers.map((phone, phoneIndex) => (
+                                                    <Space key={phoneIndex} style={{ alignItems: "center" }}>
+                                                        <Input
+                                                            placeholder="Enter phone number"
+                                                            value={phone}
+                                                            onChange={(e) => handleParentDetailsChange(index, 'phoneNumbers', item.parentDetails.phoneNumbers.map((p, i) => i === phoneIndex ? e.target.value : p))}
+                                                            style={{ flex: 1 }}
+                                                        />
+                                                        <Button type='text' onClick={() => handleRemovePhone(index, phoneIndex)} >Remove</Button>
+                                                    </Space>
+                                                ))}
+                                                <Button type='dashed' onClick={() => addPhoneNumber(index)} style={{ width: '100%' }}> <PlusOutlined /> Add Phone </Button>
+                                            </Space>
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={6}>
+                                        <Form.Item
+                                            label="Email Address"
+                                            rules={[{ required: false, message: 'Please enter email address' }]}
+                                        >
+                                            <Input
+                                                placeholder="Enter email address"
+                                                value={item.parentDetails.emailAddress}
+                                                onChange={(e) => handleParentDetailsChange(index, 'emailAddress', e.target.value)}
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                </Row>
+                            </List.Item>
+                        )}
+                    />
+
+                    <Button type="dashed" onClick={handleAddParent} style={{ width: '100%', marginTop: 10 }} icon={<PlusOutlined />} >
+                        Add Parent Data
+                    </Button>
+                    <Form.Item style={{ marginTop: 16 }}>
+                        {parents.length > 0 && (
+                            <Button type="primary" onClick={handleSaveParents} loading={loading} style={{ marginTop: 16 }}>
+                                Save Parents
+                            </Button>
+                        )}
+                    </Form.Item>
+                </Form>
+            </Modal>
+
 
         </>
     );
