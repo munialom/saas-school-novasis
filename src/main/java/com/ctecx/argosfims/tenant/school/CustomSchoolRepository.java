@@ -5,6 +5,11 @@ import java.util.Map;
 
 public interface CustomSchoolRepository {
 
+
+    //Delete methods
+    Map<String, Object> deleteStream(int id);
+    Map<String, Object> deleteClass(int id);
+
     List<Map<String, Object>> getStudentParents(int id);
     List<Map<String, Object>> getAllClasses();
     List<Map<String, Object>> getAllStreams();

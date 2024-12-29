@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Tag, Alert } from 'antd';
-import { getClasses } from '../../../lib/api';
-
-interface Class {
-    id: number;
-    className: string;
-    status: boolean;
-    createdAt: string;
-    createdBy: string;
-    updatedAt: string;
-    updatedBy: string;
-}
+import { Table, Card, Tag, Alert, Button, Modal, Form, Input, Switch } from 'antd';
+import { getClasses, updateClass, deleteClass } from '../../../lib/api';
+import { Class, ClassUpdateDTO, ClassDeleteDTO } from "../../../lib/types";
 
 const ClassList: React.FC = () => {
     const [classes, setClasses] = useState<Class[]>([]);
@@ -19,6 +10,9 @@ const ClassList: React.FC = () => {
         type: null,
         message: null
     });
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [editingClass, setEditingClass] = useState<Class | null>(null);
+    const [form] = Form.useForm();
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -39,7 +33,7 @@ const ClassList: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Error fetching classes:", error);
-                setAlert({type:'error', message:'Failed to load classes'})
+                setAlert({ type: 'error', message: 'Failed to load classes' })
             } finally {
                 setLoading(false);
             }
@@ -49,6 +43,82 @@ const ClassList: React.FC = () => {
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
+
+    const handleEdit = (record: Class) => {
+        setEditingClass(record);
+        form.setFieldsValue({
+            className: record.className,
+            status: record.status
+        })
+        setEditModalVisible(true);
+    };
+
+    const handleCancelEdit = () => {
+        setEditModalVisible(false);
+        setEditingClass(null);
+        form.resetFields();
+    };
+
+    const handleEditOk = async () => {
+        try {
+            const values = await form.validateFields();
+            if (editingClass) {
+                const updatedClass: ClassUpdateDTO = {
+                    id: editingClass.id,
+                    className: values.className,
+                    status: values.status,
+                };
+                await updateClass(updatedClass);
+
+                // Refresh Classes after update
+                const response = await getClasses();
+                if (response && response.data && Array.isArray(response.data)) {
+                    const formattedClasses = response.data.map((item: any) => ({
+                        id: item.Id,
+                        className: item.ClassName,
+                        status: item.Status === 'Active',
+                        createdAt: item.CreatedAt,
+                        createdBy: item.CreatedBy,
+                        updatedAt: item.UpdatedAt,
+                        updatedBy: item.UpdatedBy,
+                    }));
+                    setClasses(formattedClasses);
+                    setAlert({ type: 'success', message: 'Class updated successfully' });
+                }
+
+                handleCancelEdit();
+            }
+
+        } catch (error) {
+            console.error("Error updating class:", error);
+            setAlert({ type: 'error', message: 'Failed to update class' })
+        }
+    }
+    const handleDelete = async (record: Class) => {
+        try {
+            const deleteDto: ClassDeleteDTO = { id: record.id };
+            await deleteClass(deleteDto.id);
+            const response = await getClasses();
+            if (response && response.data && Array.isArray(response.data)) {
+                const formattedClasses = response.data.map((item: any) => ({
+                    id: item.Id,
+                    className: item.ClassName,
+                    status: item.Status === 'Active',
+                    createdAt: item.CreatedAt,
+                    createdBy: item.CreatedBy,
+                    updatedAt: item.UpdatedAt,
+                    updatedBy: item.UpdatedBy,
+                }));
+                setClasses(formattedClasses);
+                setAlert({ type: 'success', message: 'Class deleted successfully' });
+            }
+
+        } catch (error) {
+            console.error("Error deleting class:", error);
+            setAlert({ type: 'error', message: 'Failed to delete class' })
+        }
+    };
+
     const columns = [
         {
             title: 'Class Name',
@@ -86,6 +156,16 @@ const ClassList: React.FC = () => {
             dataIndex: 'updatedBy',
             key: 'updatedBy',
         },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (_: any, record: Class) => (
+                <>
+                    <Button type="link" onClick={() => handleEdit(record)}>Edit</Button>
+                    <Button type="link" danger onClick={() => handleDelete(record)}>Delete</Button>
+                </>
+            ),
+        },
     ];
 
     return (
@@ -112,6 +192,26 @@ const ClassList: React.FC = () => {
                 }}
                 size="small"
             />
+            <Modal
+                title="Edit Class"
+                visible={editModalVisible}
+                onOk={handleEditOk}
+                onCancel={handleCancelEdit}
+                okText="Save"
+            >
+                <Form form={form} layout="vertical">
+                    <Form.Item
+                        label="Class Name"
+                        name="className"
+                        rules={[{ required: true, message: 'Please input the class name!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Status" name="status" valuePropName="checked">
+                        <Switch />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </Card>
     );
 };

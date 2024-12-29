@@ -2,8 +2,14 @@ package com.ctecx.argosfims.tenant.school;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 import com.ctecx.argosfims.tenant.config.TenantJdbcTemplateConfig;
+
+import java.sql.Types;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +22,37 @@ public class CustomSchoolRepositoryImpl implements CustomSchoolRepository {
 
     private JdbcTemplate getJdbcTemplate(){
         return tenantJdbcTemplateConfig.getTenantJdbcTemplate();
+    }
+
+
+    @Override
+    public Map<String, Object> deleteStream(int id) {
+        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(getJdbcTemplate())
+                .withProcedureName("DeleteStreamIfNoStudents")
+                .declareParameters(
+                        new SqlParameter("p_stream_id", Types.INTEGER),
+                        new SqlOutParameter("p_message", Types.VARCHAR)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("p_stream_id", id);
+
+        return simpleJdbcCall.execute(inParams);
+    }
+
+    @Override
+    public Map<String, Object> deleteClass(int id) {
+        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(getJdbcTemplate())
+                .withProcedureName("DeleteClassIfNoStudents")
+                .declareParameters(
+                        new SqlParameter("p_class_id", Types.INTEGER),
+                        new SqlOutParameter("p_message", Types.VARCHAR)
+                );
+
+        Map<String, Object> inParams = new HashMap<>();
+        inParams.put("p_class_id", id);
+
+        return simpleJdbcCall.execute(inParams);
     }
 
 

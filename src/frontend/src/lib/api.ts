@@ -1,5 +1,12 @@
 import axios from 'axios';
-import { StudentDTO, ParentDetails } from "./types";
+import {
+    StudentDTO,
+    ParentDetails,
+    ClassUpdateDTO,
+    StreamUpdateDTO,
+    StreamDeleteDTO,
+    ClassDeleteDTO
+} from "./types";
 
 const getApiBaseUrl = (): string => {
     try {
@@ -25,9 +32,10 @@ const getAuthConfig = () => ({
 
 interface LoginResponse {
     data: {
-        token : string
+        token: string
     }
 }
+
 export const login = async (usernameAndPassword: any): Promise<LoginResponse> => {
     try {
         return await axios.post(
@@ -71,6 +79,7 @@ export const saveStudent = async (student: StudentDTO): Promise<any> => {
         throw e;
     }
 };
+
 export const updateStudent = async (student: any): Promise<any> => {
     try {
         return await axios.put(
@@ -95,7 +104,7 @@ interface StudentParentRequest {
 
 
 export const saveParents = async (parentData: { parentType: string, parentDetails: ParentDetails }[], studentId: number | undefined): Promise<any> => {
-    const requestBody:StudentParentRequest = {
+    const requestBody: StudentParentRequest = {
         studentId: studentId || 0, //default student id of 0
         parents: parentData.map(parent => ({
             parentType: parent.parentType as 'MOTHER' | 'FATHER' | 'GUARDIAN',
@@ -168,5 +177,62 @@ export const getStudentParents = async (studentId: number): Promise<any> => {
     } catch (e) {
         console.log(e)
         return null
+    }
+};
+
+export const updateClass = async (classData: ClassUpdateDTO): Promise<any> => {
+    try {
+        return await axios.put(
+            `${getApiBaseUrl()}/api/v1/school/classes`,
+            classData,
+            getAuthConfig()
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+export const updateStream = async (streamData: StreamUpdateDTO): Promise<any> => {
+    try {
+        return await axios.put(
+            `${getApiBaseUrl()}/api/v1/school/streams`,
+            streamData,
+            getAuthConfig()
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+export const deleteStream = async (streamId: number): Promise<any> => {
+    const deleteDto: StreamDeleteDTO = { id: streamId };
+    try {
+        return await axios.delete(
+            `${getApiBaseUrl()}/api/v1/school/streams`,
+            {
+                ...getAuthConfig(),
+                data: deleteDto,
+            }
+        )
+    } catch (error) {
+        throw error
+    }
+
+}
+
+export const deleteClass = async (classId: number): Promise<any> => {
+    const deleteDto: ClassDeleteDTO = { id: classId };
+    try {
+        return await axios.delete(
+            `${getApiBaseUrl()}/api/v1/school/classes`,
+            {
+                ...getAuthConfig(),
+                data: deleteDto,
+            }
+        );
+    } catch (error) {
+        throw error;
     }
 };

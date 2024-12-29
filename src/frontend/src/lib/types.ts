@@ -68,6 +68,28 @@ export interface Stream {
     updatedBy?: string;
 }
 
+// types.ts
+
+export interface ClassUpdateDTO {
+    id: number;
+    className: string;
+    status: boolean;
+}
+
+export interface StreamUpdateDTO {
+    id: number;
+    streamName: string;
+    status: boolean;
+}
+
+
+export interface StreamDeleteDTO {
+    id: number;
+}
+
+export interface ClassDeleteDTO {
+    id: number;
+}
 export enum Admission {
     SESSION = "SESSION",
     TRANSFER = "TRANSFER",

@@ -18,6 +18,20 @@ public class SchoolService {
     private final CustomSchoolRepository schoolRepository;
 
     private final ObjectMapper objectMapper;
+
+
+    public  Map<String, Object> deleteStream(StreamDeleteDTO streamDeleteDTO){
+        return Optional.ofNullable(streamDeleteDTO)
+                .filter(dto -> dto.getId() != null)
+                .map(dto -> schoolRepository.deleteStream(dto.getId()))
+                .orElse(Collections.emptyMap());
+    }
+    public  Map<String, Object> deleteClass(ClassDeleteDTO classDeleteDTO){
+        return Optional.ofNullable(classDeleteDTO)
+                .filter(dto -> dto.getId() != null)
+                .map(dto -> schoolRepository.deleteClass(dto.getId()))
+                .orElse(Collections.emptyMap());
+    }
     public List<Map<String, Object>> getStudentParents(int id) {
         List<Map<String, Object>> parents = schoolRepository.getStudentParents(id);
 

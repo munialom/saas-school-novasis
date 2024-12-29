@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Tag, Alert } from 'antd';
-import { getStreams } from '../../../lib/api';
-
-interface Stream {
-    id: number;
-    streamName: string;
-    status: boolean;
-    createdAt: string;
-    createdBy: string;
-    updatedAt: string;
-    updatedBy: string;
-}
+import { Table, Card, Tag, Alert, Button, Modal, Form, Input, Switch } from 'antd';
+import { getStreams, updateStream, deleteStream } from '../../../lib/api';
+import { Stream, StreamUpdateDTO, StreamDeleteDTO } from "../../../lib/types";
 
 const StreamList: React.FC = () => {
     const [streams, setStreams] = useState<Stream[]>([]);
@@ -19,6 +10,9 @@ const StreamList: React.FC = () => {
         type: null,
         message: null
     });
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [editingStream, setEditingStream] = useState<Stream | null>(null);
+    const [form] = Form.useForm();
 
     useEffect(() => {
         const fetchStreams = async () => {
@@ -40,7 +34,7 @@ const StreamList: React.FC = () => {
 
             } catch (error) {
                 console.error("Error fetching streams:", error)
-                setAlert({type:'error', message:'Failed to load streams'})
+                setAlert({ type: 'error', message: 'Failed to load streams' })
 
             } finally {
                 setLoading(false);
@@ -51,6 +45,79 @@ const StreamList: React.FC = () => {
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
+
+    const handleEdit = (record: Stream) => {
+        setEditingStream(record);
+        form.setFieldsValue({
+            streamName: record.streamName,
+            status: record.status
+        })
+        setEditModalVisible(true);
+    };
+
+    const handleCancelEdit = () => {
+        setEditModalVisible(false);
+        setEditingStream(null);
+        form.resetFields();
+    };
+
+    const handleEditOk = async () => {
+        try {
+            const values = await form.validateFields();
+            if (editingStream) {
+                const updatedStream: StreamUpdateDTO = {
+                    id: editingStream.id,
+                    streamName: values.streamName,
+                    status: values.status,
+                };
+                await updateStream(updatedStream);
+                const response = await getStreams();
+                if (response && response.data && Array.isArray(response.data)) {
+                    const formattedStreams = response.data.map((item: any) => ({
+                        id: item.Id,
+                        streamName: item.StreamName,
+                        status: item.Status === 'Active',
+                        createdAt: item.CreatedAt,
+                        createdBy: item.CreatedBy,
+                        updatedAt: item.UpdatedAt,
+                        updatedBy: item.UpdatedBy,
+                    }));
+                    setStreams(formattedStreams);
+                    setAlert({ type: 'success', message: 'Stream updated successfully' });
+                }
+                handleCancelEdit();
+            }
+
+        } catch (error) {
+            console.error("Error updating stream:", error);
+            setAlert({ type: 'error', message: 'Failed to update stream' })
+        }
+    }
+
+    const handleDelete = async (record: Stream) => {
+        try {
+            const deleteDto: StreamDeleteDTO = { id: record.id };
+            await deleteStream(deleteDto.id);
+            const response = await getStreams();
+            if (response && response.data && Array.isArray(response.data)) {
+                const formattedStreams = response.data.map((item: any) => ({
+                    id: item.Id,
+                    streamName: item.StreamName,
+                    status: item.Status === 'Active',
+                    createdAt: item.CreatedAt,
+                    createdBy: item.CreatedBy,
+                    updatedAt: item.UpdatedAt,
+                    updatedBy: item.UpdatedBy,
+                }));
+                setStreams(formattedStreams);
+                setAlert({ type: 'success', message: 'Stream deleted successfully' });
+            }
+        } catch (error) {
+            console.error("Error deleting stream:", error);
+            setAlert({ type: 'error', message: 'Failed to delete stream' })
+        }
+    };
+
     const columns = [
         {
             title: 'Stream Name',
@@ -88,6 +155,16 @@ const StreamList: React.FC = () => {
             dataIndex: 'updatedBy',
             key: 'updatedBy',
         },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (_: any, record: Stream) => (
+                <>
+                    <Button type="link" onClick={() => handleEdit(record)}>Edit</Button>
+                    <Button type="link" danger onClick={() => handleDelete(record)}>Delete</Button>
+                </>
+            ),
+        },
     ];
 
     return (
@@ -114,6 +191,26 @@ const StreamList: React.FC = () => {
                 }}
                 size="small"
             />
+            <Modal
+                title="Edit Stream"
+                visible={editModalVisible}
+                onOk={handleEditOk}
+                onCancel={handleCancelEdit}
+                okText="Save"
+            >
+                <Form form={form} layout="vertical">
+                    <Form.Item
+                        label="Stream Name"
+                        name="streamName"
+                        rules={[{ required: true, message: 'Please input the stream name!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Status" name="status" valuePropName="checked">
+                        <Switch />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </Card>
     );
 };

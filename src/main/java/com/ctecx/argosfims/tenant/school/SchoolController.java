@@ -14,7 +14,16 @@ public class SchoolController {
 
     private final SchoolService schoolService;
 
-
+    @DeleteMapping("/streams")
+    public ResponseEntity<Map<String, Object>> deleteStream(@RequestBody StreamDeleteDTO streamDeleteDTO){
+        Map<String, Object> result = schoolService.deleteStream(streamDeleteDTO);
+        return !result.isEmpty() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
+    }
+    @DeleteMapping("/classes")
+    public ResponseEntity<Map<String, Object>> deleteClass(@RequestBody ClassDeleteDTO classDeleteDTO){
+        Map<String, Object> result = schoolService.deleteClass(classDeleteDTO);
+        return !result.isEmpty() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
+    }
 
     @GetMapping("/parents/{id}")
     public ResponseEntity<List<Map<String, Object>>> getStudentsParents(@PathVariable int id) {
