@@ -327,23 +327,21 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                 {existingParentsData && existingParentsData.length > 0 && (
                     <Card title="Existing Parent Details">
                         <List
-                            dataSource={existingParentsData.map(parent => ({
-                                ...parent,
-                                parentDetails: typeof parent.parentDetails === 'string' ? JSON.parse(parent.parentDetails.replace(/\\/g, '')) as ParentDetails : parent.parentDetails as ParentDetails,
-                            }))}
-                            renderItem={(item: ParentResponse & { parentDetails: ParentDetails }) => {
+                            dataSource={existingParentsData}
+                            renderItem={(item) => {
                                 console.log("Rendering Existing Parent Item:", item)
+                                const parsedParentDetails = typeof item.parentDetails === 'string' ? JSON.parse(item.parentDetails.replace(/\\/g, '')) as ParentDetails : item.parentDetails as ParentDetails
                                 return (
                                     <List.Item key={item.id}>
                                         <Descriptions title={`${item.parentType} Information`} layout="vertical" >
                                             <Descriptions.Item label="Full Name">
-                                                {item.parentDetails?.fullName || 'N/A'}
+                                                {parsedParentDetails?.fullName || 'N/A'}
                                             </Descriptions.Item>
                                             <Descriptions.Item label="Phone Numbers">
-                                                {item.parentDetails?.phoneNumbers?.join(', ') || 'N/A'}
+                                                {parsedParentDetails?.phoneNumbers?.join(', ') || 'N/A'}
                                             </Descriptions.Item>
                                             <Descriptions.Item label="Email Address">
-                                                {item.parentDetails?.emailAddress || 'N/A'}
+                                                {parsedParentDetails?.emailAddress || 'N/A'}
                                             </Descriptions.Item>
                                         </Descriptions>
                                     </List.Item>
