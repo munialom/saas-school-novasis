@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, type MutableRefObject } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert, Pagination, Row, Col } from 'antd';
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import type { InputRef } from 'antd';
 import { searchStudentsWithPagination } from '../../../lib/api';
 import { Student, StudentSearchResponse } from '../../../lib/types';
-import type { InputRef } from 'antd';
-
 
 interface StudentTableProps {
     onViewStudent: (student: Student) => void;
@@ -24,21 +23,18 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const [searchText, setSearchText] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
-    const searchInputRef: MutableRefObject<InputRef | null> = useRef(null);
-
+    const searchInputRef = useRef<InputRef>(null);
+    const isInitialMount = useRef(true);
 
     const loadStudents = useCallback(async (search: string, page: number) => {
-        console.log("loadStudents called with:", { search, page });
         setLoading(true);
         try {
             const response = await searchStudentsWithPagination(search, page);
-            console.log("API response:", response);
 
-            if (response && response.data) {
-                const { records = [], totalRecords } = response.data as StudentSearchResponse;
-                console.log("API data:", { records, totalRecords });
+            if (response?.data) {
+                const { records = [], totalRecords = 0 } = response.data as StudentSearchResponse;
 
-                const formattedStudents: Student[] = records.map((item:any) => ({
+                const formattedStudents: Student[] = records.map((item: any) => ({
                     id: item?.Id,
                     admissionNumber: item?.AdmissionNumber,
                     fullName: item?.FullName,
@@ -55,47 +51,53 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                         streamName: item?.StreamName
                     },
                     createdAt: item?.CreatedAt,
-                    createdBy: item?.CreatedBy,
-                    TotalRecords: item?.TotalRecords
+                    createdBy: item?.CreatedBy
                 }));
 
-                console.log("Formatted students:", formattedStudents);
                 setStudents(formattedStudents);
                 setTotalRecords(totalRecords);
 
-
-                const classMap: Record<string, any> = {};
-                const streamMap: Record<string, any> = {};
+                // Update classes and streams filters
+                const uniqueClasses = new Set<string>();
+                const uniqueStreams = new Set<string>();
 
                 formattedStudents.forEach((student: Student) => {
-                    if (student.studentClass && student.studentClass.className) {
-                        classMap[student.studentClass.className] = { id: student.studentClass.className, className: student.studentClass.className };
+                    if (student.studentClass?.className) {
+                        uniqueClasses.add(student.studentClass.className);
                     }
-
-                    if (student.studentStream && student.studentStream.streamName) {
-                        streamMap[student.studentStream.streamName] = { id: student.studentStream.streamName, streamName: student.studentStream.streamName };
+                    if (student.studentStream?.streamName) {
+                        uniqueStreams.add(student.studentStream.streamName);
                     }
                 });
-                setClasses(Object.values(classMap));
-                setStreams(Object.values(streamMap));
+
+                setClasses(Array.from(uniqueClasses).map(className => ({
+                    id: className,
+                    className
+                })));
+
+                setStreams(Array.from(uniqueStreams).map(streamName => ({
+                    id: streamName,
+                    streamName
+                })));
             }
         } catch (error) {
             console.error('Error searching students:', error);
             setAlert({ type: 'error', message: 'Failed to load student data' });
         } finally {
             setLoading(false);
-            console.log("loadStudents completed, loading:", loading);
         }
     }, []);
 
-
-
     useEffect(() => {
-        loadStudents(searchText, currentPage);
-        console.log("useEffect - searchText:", searchText, "currentPage:", currentPage);
-        //load data on mounted
-        if(!searchText){
-            loadStudents('', 1)
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            loadStudents('', 1); // Load initial data
+        } else {
+            const timer = setTimeout(() => {
+                loadStudents(searchText, currentPage);
+            }, 300); // Debounce search
+
+            return () => clearTimeout(timer);
         }
     }, [searchText, currentPage, loadStudents]);
 
@@ -103,11 +105,9 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         setAlert({ type: null, message: null });
     };
 
-
     const handleToggleStatus = async (record: Student) => {
         console.log('toggled status of: ' + record.fullName);
     };
-
 
     const rowSelection = {
         selectedRowKeys,
@@ -155,25 +155,25 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         },
         {
             title: 'Class',
-            dataIndex: 'studentClass',
+            dataIndex: ['studentClass', 'className'],
             key: 'class',
             width: 100,
-            render: (studentClass, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentClass?.className}</span>
+            render: (text, record) => (
+                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
             ),
             filters: classes.map(c => ({ text: c.className, value: c.className })),
-            onFilter: (value, record) => record.studentClass.className === value,
+            onFilter: (value, record) => record.studentClass?.className === value,
         },
         {
             title: 'Stream',
-            dataIndex: 'studentStream',
+            dataIndex: ['studentStream', 'streamName'],
             key: 'stream',
             width: 120,
-            render: (studentStream, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentStream?.streamName}</span>
+            render: (text, record) => (
+                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
             ),
             filters: streams.map(s => ({ text: s.streamName, value: s.streamName })),
-            onFilter: (value, record) => record.studentStream.streamName === value,
+            onFilter: (value, record) => record.studentStream?.streamName === value,
         },
         {
             title: 'Gender',
@@ -230,11 +230,13 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             title: 'Created At',
             dataIndex: 'createdAt',
             key: 'createdAt',
+            width: 150,
         },
         {
             title: 'Created By',
             dataIndex: 'createdBy',
             key: 'createdBy',
+            width: 150,
         },
         {
             title: 'Action',
@@ -256,18 +258,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchText(value);
-        setCurrentPage(1);
+        setCurrentPage(1); // Reset to first page when searching
     };
-
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
-
-    const handleExport = () => {
-
-    };
-
 
     return (
         <Card>
@@ -294,8 +290,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     />
                 </Col>
                 <Col md={13}>
-                    <Space style={{ float: 'right'}}>
-                        <Button type="primary" onClick={handleExport}>Export</Button>
+                    <Space style={{ float: 'right' }}>
+                        <Button type="primary">Export</Button>
                         <Button type="primary">Print</Button>
                     </Space>
                 </Col>
@@ -324,7 +320,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     pageSize={8}
                     total={totalRecords}
                     onChange={handlePageChange}
-                    style={{ float: 'right'}}
+                    style={{ float: 'right' }}
                 />
             </Space>
         </Card>
