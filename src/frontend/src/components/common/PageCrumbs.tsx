@@ -41,7 +41,7 @@ const PageCrumbs: React.FC = () => {
     });
 
     return (
-        <div style={{ padding: '16px 12px 0px',  }}>
+        <div style={{ padding: '10px 12px 0px',  }}>
             <Breadcrumb items={breadcrumbItems} />
         </div>
     );
