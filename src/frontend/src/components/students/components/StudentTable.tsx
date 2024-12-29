@@ -34,35 +34,33 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             console.log("API response:", response);
 
             if (response && response.data) {
-                const { records = [], totalRecords } = response.data as StudentSearchResponse;
-                console.log("API data:", { records, totalRecords });
+                const { records = [] } = response.data as StudentSearchResponse;
 
-                const formattedStudents: Student[] = records.map((item: any) => {
-                    return {
-                        id: item.Id,
-                        admissionNumber: item.AdmissionNumber,
-                        fullName: item.FullName,
-                        gender: item.Gender,
-                        location: item.Location,
-                        admission: item.Admission,
-                        mode: item.Mode,
-                        status: item.Status === 'Active',
-                        yearOf: item.YearOf,
-                        studentClass: {
-                            className: item.ClassName
-                        },
-                        studentStream: {
-                            streamName: item.StreamName
-                        },
-                        createdAt: item.CreatedAt,
-                        createdBy: item.CreatedBy,
-                        TotalRecords: item.TotalRecords
-                    }
-                });
+                const formattedStudents: Student[] = records.map((item: any) => ({
+                    id: item.Id,
+                    admissionNumber: item.AdmissionNumber,
+                    fullName: item.FullName,
+                    gender: item.Gender,
+                    location: item.Location,
+                    admission: item.Admission,
+                    mode: item.Mode,
+                    status: item.Status === 'Active',
+                    yearOf: item.YearOf,
+                    studentClass: {
+                        className: item.ClassName
+                    },
+                    studentStream: {
+                        streamName: item.StreamName
+                    },
+                    createdAt: item.CreatedAt,
+                    createdBy: item.CreatedBy,
+                    TotalRecords: item.TotalRecords
+                }));
+                //set the total number of record, we get from the first record
+                setTotalRecords(formattedStudents[0]?.TotalRecords || 0);
 
                 console.log("Formatted students:", formattedStudents);
                 setStudents(formattedStudents);
-                setTotalRecords(totalRecords);
 
                 const classMap: Record<string, any> = {};
                 const streamMap: Record<string, any> = {};
@@ -71,7 +69,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     if (student.studentClass && student.studentClass.className) {
                         classMap[student.studentClass.className] = { id: student.studentClass.className, className: student.studentClass.className };
                     }
-
 
                     if (student.studentStream && student.studentStream.streamName) {
                         streamMap[student.studentStream.streamName] = { id: student.studentStream.streamName, streamName: student.studentStream.streamName };
@@ -90,13 +87,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     }, []);
 
 
-
     useEffect(() => {
         loadStudents(searchText, currentPage);
-        console.log("useEffect - searchText:", searchText, "currentPage:", currentPage)
+        console.log("useEffect - searchText:", searchText, "currentPage:", currentPage);
         //load data on mounted
         if(!searchText){
-            loadStudents('', 1)
+            loadStudents('', 1);
         }
     }, [searchText, currentPage, loadStudents]);
 
@@ -111,13 +107,13 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     };
 
 
+
     const rowSelection = {
         selectedRowKeys,
         onChange: (newSelectedRowKeys: React.Key[]) => {
             setSelectedRowKeys(newSelectedRowKeys);
         },
     };
-
 
 
     const columns: ColumnsType<Student> = [
@@ -263,6 +259,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         setSearchText(value);
         setCurrentPage(1);
     };
+
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
