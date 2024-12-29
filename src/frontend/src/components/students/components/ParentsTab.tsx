@@ -75,22 +75,41 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
     useEffect(() => {
         if (existingParentsData) {
             try {
-                const initialParents = existingParentsData.map((parent) => ({
-                    parentType: parent.parentType,
-                    parentDetails: typeof parent.parentDetails === 'string' ? JSON.parse(parent.parentDetails) as ParentDetails : parent.parentDetails as ParentDetails
-                }))
+                const initialParents = existingParentsData.map((parent) => {
+                    let parentDetails: ParentDetails | string = parent.parentDetails;
+
+                    if (typeof parentDetails === 'string') {
+                        try {
+                            //remove the backslashes so that we can convert to JSON object
+                            const parsedParentDetails = JSON.parse(parentDetails.replace(/\\/g, '')) as ParentDetails;
+                            parentDetails = parsedParentDetails
+                        } catch (e) {
+                            console.log("error converting stringified json", e);
+                            parentDetails = {
+                                fullName: "",
+                                phoneNumbers: [],
+                                emailAddress: ""
+                            }
+                        }
+                    }
+
+                    return {
+                        parentType: parent.parentType,
+                        parentDetails: parentDetails as ParentDetails
+                    }
+
+                })
                 setParents(initialParents);
 
             } catch (e) {
-                console.log("could not process data")
+                console.log("could not process data", e)
                 setAlert({ type: 'error', message: 'Could not process parents data' });
                 setExistingParentsData(null)
             }
-
-
         }
 
     }, [existingParentsData, setAlert]);
+
 
     const handleParentDetailsChange = (index: number, field: string, value: any) => {
         setParents(prevParents => {
@@ -294,18 +313,21 @@ const ParentsTab: React.FC<ParentsTabProps> = ({
                 {existingParentsData && existingParentsData.length > 0 && (
                     <Card title="Existing Parent Details">
                         <List
-                            dataSource={existingParentsData}
-                            renderItem={(item) => (
+                            dataSource={existingParentsData.map(parent => ({
+                                ...parent,
+                                parentDetails: typeof parent.parentDetails === 'string' ? JSON.parse(parent.parentDetails.replace(/\\/g, '')) as ParentDetails : parent.parentDetails as ParentDetails,
+                            }))}
+                            renderItem={(item: ParentResponse & { parentDetails: ParentDetails }) => (
                                 <List.Item key={item.id}>
                                     <Descriptions title={`${item.parentType} Information`} layout="vertical" >
                                         <Descriptions.Item label="Full Name">
-                                            {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).fullName : (item.parentDetails as ParentDetails).fullName) || 'N/A'}
+                                            {item.parentDetails?.fullName || 'N/A'}
                                         </Descriptions.Item>
                                         <Descriptions.Item label="Phone Numbers">
-                                            {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).phoneNumbers?.join(', ') || 'N/A' : (item.parentDetails as ParentDetails).phoneNumbers?.join(', ') || 'N/A')}
+                                            {item.parentDetails?.phoneNumbers?.join(', ') || 'N/A'}
                                         </Descriptions.Item>
                                         <Descriptions.Item label="Email Address">
-                                            {item.parentDetails && (typeof item.parentDetails === 'string' ? (JSON.parse(item.parentDetails) as ParentDetails).emailAddress || 'N/A' : (item.parentDetails as ParentDetails).emailAddress || 'N/A')}
+                                            {item.parentDetails?.emailAddress || 'N/A'}
                                         </Descriptions.Item>
                                     </Descriptions>
                                 </List.Item>

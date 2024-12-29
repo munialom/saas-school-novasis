@@ -45,7 +45,7 @@ export interface ParentResponse {
     created_by: string;
     last_modified_date: string;
     modified_by: string;
-    parentDetails: string;
+    parentDetails: ParentDetails | string;
     parentType: 'MOTHER' | 'FATHER' | 'GUARDIAN';
     student_id: number
 }
