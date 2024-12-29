@@ -1,19 +1,31 @@
-
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert } from 'antd';
+import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert, Form, Switch , Checkbox} from 'antd';
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType, TableProps } from 'antd/es/table';
 import { getStudents } from '../../../lib/api';
 import { Student } from '../../../lib/types';
 
 interface StudentTableProps {
     onViewStudent: (student: Student) => void;
 }
+type TablePagination<T extends object> = NonNullable<Exclude<TableProps<T>['pagination'], boolean>>;
+type TablePaginationPosition = NonNullable<TablePagination<any>['position']>[number];
+type TableRowSelection<T extends object> = TableProps<T>['rowSelection'];
+
+
+
 
 const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
-    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-    const [students, setStudents] = useState<Student[]>([]);
+    const [bordered, setBordered] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [showHeader, setShowHeader] = useState(true);
+    const [rowSelection, setRowSelection] = useState<TableRowSelection<Student> | undefined>({});
+    const [yScroll, setYScroll] = useState(false);
+    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [bottom] = useState<TablePaginationPosition>('bottomRight');
+
+
+    const [students, setStudents] = useState<Student[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [streams, setStreams] = useState<any[]>([]);
     const [alert, setAlert] = useState<{ type: 'success' | 'error' | null, message: string | null }>({
@@ -63,8 +75,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     setClasses(Object.values(classMap));
                     setStreams(Object.values(streamMap));
                 }
-
-
             } catch (error) {
                 console.error('Error fetching students:', error);
                 setAlert({ type: 'error', message: 'Failed to load student data' })
@@ -78,19 +88,47 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
-
     const handleToggleStatus = async (record: Student) => {
         console.log('toggled status of: ' + record.fullName)
     };
 
+    const handleBorderChange = (enable: boolean) => {
+        setBordered(enable);
+    };
 
-    const rowSelection = {
+
+    const handleHeaderChange = (enable: boolean) => {
+        setShowHeader(enable);
+    };
+
+    const handleRowSelectionChange = (enable: boolean) => {
+        setRowSelection(enable ? {} : undefined);
+    };
+
+    const handleYScrollChange = (enable: boolean) => {
+        setYScroll(enable);
+    };
+
+
+    const rowSelectionConfig = {
         selectedRowKeys,
         onChange: (newSelectedRowKeys: React.Key[]) => {
             setSelectedRowKeys(newSelectedRowKeys);
         },
     };
 
+    const scroll: { x?: number | string; y?: number | string } = {};
+    if (yScroll) {
+        scroll.y = 240;
+    }
+    const tableProps: TableProps<Student> = {
+        bordered,
+        loading,
+        size: 'small',
+        showHeader,
+        rowSelection: rowSelection ? rowSelectionConfig : undefined ,
+        scroll,
+    };
     const columns: ColumnsType<Student> = [
         {
             title: 'Admission No',
@@ -229,7 +267,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             ),
         },
     ];
-
     return (
         <Card>
             {alert.type && alert.message && (
@@ -242,23 +279,36 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     style={{ marginBottom: 16 }}
                 />
             )}
+            <Form layout="inline" className="table-demo-control-bar" style={{ marginBottom: 16 }}>
+                <Form.Item label="Bordered">
+                    <Checkbox checked={bordered} onChange={(e) => handleBorderChange(e.target.checked)} />
+                </Form.Item>
+                <Form.Item label="loading">
+                    <Switch checked={loading} onChange={setLoading} />
+                </Form.Item>
+                <Form.Item label="Column Header">
+                    <Checkbox checked={showHeader} onChange={(e) => handleHeaderChange(e.target.checked)} />
+                </Form.Item>
+                <Form.Item label="Checkbox">
+                    <Checkbox checked={!!rowSelection} onChange={(e) => handleRowSelectionChange(e.target.checked)} />
+                </Form.Item>
+                <Form.Item label="Fixed Header">
+                    <Checkbox checked={!!yScroll} onChange={(e) => handleYScrollChange(e.target.checked)} />
+                </Form.Item>
+            </Form>
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Table
-                    columns={columns}
-                    dataSource={students}
-                    rowSelection={rowSelection}
-                    rowKey="id"
-                    size="small"
-                    loading={loading}
-                    locale={{ emptyText: 'No Students Data' }}
-                    scroll={{ x: 'max-content' }}
-                    pagination={{
-                        defaultPageSize: 10,
+                <Table<Student>
+                    {...tableProps}
+                    pagination={{ position: ['none', bottom]  ,  defaultPageSize: 10,
                         showSizeChanger: true,
                         showQuickJumper: true,
                         showTotal: (total) => `Total ${total} students`,
-                        size: 'small'
                     }}
+                    columns={columns}
+                    dataSource={students}
+                    rowKey="id"
+                    loading={loading}
+                    locale={{ emptyText: 'No Students Data' }}
                     rowClassName={(record) => !record.status ? 'table-row-inactive' : ''}
                     style={{
                         backgroundColor: 'white',
