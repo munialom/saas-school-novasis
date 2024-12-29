@@ -3,7 +3,7 @@ import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert, Pagination, Row
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { searchStudentsWithPagination } from '../../../lib/api';
-import { Student, StudentSearchResponse } from '../../../lib/types';
+import { Student, } from '../../../lib/types';
 import type { InputRef } from 'antd';
 
 
@@ -34,7 +34,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             console.log("API response:", response);
 
             if (response && response.data) {
-                const  { records = [], ...rest } = response.data;
+                const { records = [], } = response.data as  { records: any[], totalRecords: number };
                 const totalRecords = records[0]?.TotalRecords || 0
                 console.log("API data:", { records, totalRecords });
 
@@ -64,10 +64,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                 setStudents(formattedStudents);
                 setTotalRecords(totalRecords);
 
-
                 const classMap: Record<string, any> = {};
                 const streamMap: Record<string, any> = {};
-
 
                 formattedStudents.forEach((student: Student) => {
                     if (student.studentClass && student.studentClass.className) {
@@ -90,18 +88,21 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         }
     }, []);
 
+
     useEffect(() => {
         loadStudents(searchText, currentPage);
         console.log("useEffect - searchText:", searchText, "currentPage:", currentPage);
         //load data on mounted
         if(!searchText){
-            loadStudents('', 1)
+            loadStudents('', 1);
         }
     }, [searchText, currentPage, loadStudents]);
+
 
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
     };
+
 
     const handleToggleStatus = async (record: Student) => {
         console.log('toggled status of: ' + record.fullName);
@@ -254,12 +255,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     ];
 
 
-
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchText(value);
         setCurrentPage(1);
     };
+
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
