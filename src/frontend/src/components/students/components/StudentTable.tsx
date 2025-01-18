@@ -1,22 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert } from 'antd';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Table, Input, Button, Space, Tag, Tooltip, Card, Alert, Empty, Pagination } from 'antd';
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType, TableProps } from 'antd/es/table';
 import { searchStudentsWithPagination } from '../../../lib/api';
 import { Student } from '../../../lib/types';
+import { CSSProperties } from 'react';
 
 interface StudentTableProps {
     onViewStudent: (student: Student) => void;
 }
-
-type TablePagination<T extends object> = NonNullable<Exclude<TableProps<T>['pagination'], boolean>>;
-type TablePaginationPosition = NonNullable<TablePagination<any>['position']>[number];
-const defaultFooter = () => 'End of Student List';
-
-
 const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const [loading, setLoading] = useState(false);
-    const [students, setStudents] = useState<Student[]>([]);
+    const [allStudents, setAllStudents] = useState<Student[]>([]);
+    const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [streams, setStreams] = useState<any[]>([]);
     const [alert, setAlert] = useState<{ type: 'success' | 'error' | null; message: string | null }>({
@@ -26,16 +22,15 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalRecords, setTotalRecords] = useState(0);
-    const bottom: TablePaginationPosition = 'bottomRight';
-    const pageSize = 8; // Set the records per page
+    const [, setTotalRecords] = useState(0);
+    const pageSize = 20; // Set the records per page
 
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await searchStudentsWithPagination(search, currentPage);
+                const response = await searchStudentsWithPagination('', 1); // Fetch all records initially
                 if (response && response.data && Array.isArray(response.data)) {
                     const formattedStudents = response.data.map((item: any) => ({
                         id: item.Id,
@@ -55,15 +50,17 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                         },
                         createdAt: item.CreatedAt,
                         createdBy: item.CreatedBy,
-                        TotalRecords: item.TotalRecords, // Assuming your backend sends total records in each response
+                        TotalRecords: item.TotalRecords,
                     }));
 
-                    setStudents(formattedStudents);
+
+                    setAllStudents(formattedStudents); // Store all students from first call
+                    setFilteredStudents(formattedStudents);
                     //Extract unique classes and streams for filtering
                     const classMap: Record<string, any> = {};
                     const streamMap: Record<string, any> = {};
 
-                    formattedStudents.forEach((student: Student) => { // Explicitly type 'student' as Student
+                    formattedStudents.forEach((student: Student) => {
                         if (student.studentClass && student.studentClass.className) {
                             classMap[student.studentClass.className] = { id: student.studentClass.className, className: student.studentClass.className };
                         }
@@ -74,11 +71,15 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                     });
                     setClasses(Object.values(classMap));
                     setStreams(Object.values(streamMap));
-                    if(formattedStudents.length > 0){
+
+
+                    if (formattedStudents.length > 0) {
                         setTotalRecords(formattedStudents[0].TotalRecords || 0);
-                    }else {
+                    } else {
                         setTotalRecords(0);
                     }
+
+
                 }
             } catch (error) {
                 console.error('Error fetching students:', error);
@@ -89,7 +90,23 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         };
 
         fetchData();
-    }, [search, currentPage]); // Fetch data when search or page changes
+    }, []);
+
+    useEffect(() => {
+        // Filter on search change
+        const filtered = allStudents.filter(student =>
+            student.fullName.toLowerCase().includes(search.toLowerCase()) ||
+            student.admissionNumber.toLowerCase().includes(search.toLowerCase())
+        );
+        setFilteredStudents(filtered);
+        setCurrentPage(1)
+    }, [search, allStudents])
+
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return filteredStudents.slice(startIndex, endIndex);
+    }, [filteredStudents, currentPage, pageSize]);
 
     const onCloseAlert = () => {
         setAlert({ type: null, message: null });
@@ -99,7 +116,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
     };
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
-        setCurrentPage(1); // Reset to page 1 when searching
     };
 
     const rowSelectionConfig = {
@@ -113,17 +129,34 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
         setCurrentPage(page);
     };
 
-    const scroll: { x?: number | string; y?: number | string } = {};
-    scroll.y = 240;
+
+    if (loading) {
+        return <Loading />;
+    }
+
+    if (!allStudents || allStudents.length === 0) {
+        return (<Card>  <Empty /> </Card>);
+    }
+
+
+
+    const dataWithKeys = paginatedData.map((item, index) => ({
+        ...item,
+        key: item.id ? item.id : `row_${index}`,
+    }));
+
 
     const tableProps: TableProps<Student> = {
-        bordered: false,
-        loading,
+        bordered: true,
+        loading: false,
         size: 'small',
         showHeader: true,
         rowSelection: rowSelectionConfig,
-        scroll,
-        footer: defaultFooter,
+        style: { ...tableContainerStyle },
+        pagination: false, // Remove pagination from Table props
+        // Use 'middle' size for more compact look.
+        // size: 'middle',
+        rowClassName: () => 'compact-table-row', // Apply a custom class to all rows
     };
 
     const columns: ColumnsType<Student> = [
@@ -131,7 +164,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             title: 'Admission No',
             dataIndex: 'admissionNumber',
             key: 'admissionNumber',
-            width: 120,
+            width: 100,
             sorter: (a, b) => a.admissionNumber.localeCompare(b.admissionNumber),
             filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
                 <div style={{ padding: 8 }}>
@@ -150,117 +183,177 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
             ),
             filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
             render: (text, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
+                </div>
             ),
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
         {
             title: 'Name',
             dataIndex: 'fullName',
             key: 'fullName',
-            width: 180,
+            width: 150,
             sorter: (a, b) => a.fullName.localeCompare(b.fullName),
             render: (text, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
+                </div>
             ),
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
         {
             title: 'Class',
             dataIndex: 'studentClass',
             key: 'class',
-            width: 100,
+            width: 80,
             render: (studentClass, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentClass?.className}</span>
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentClass?.className}</span>
+                </div>
             ),
             filters: classes.map(c => ({ text: c.className, value: c.className })),
             onFilter: (value, record) => record.studentClass.className === value,
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
         {
             title: 'Stream',
             dataIndex: 'studentStream',
             key: 'stream',
-            width: 120,
+            width: 100,
             render: (studentStream, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentStream?.streamName}</span>
+                <div style={{ ...tableCellStyle, textAlign: 'left' }}>
+                    <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{studentStream?.streamName}</span>
+                </div>
+
             ),
             filters: streams.map(s => ({ text: s.streamName, value: s.streamName })),
             onFilter: (value, record) => record.studentStream.streamName === value,
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
         {
             title: 'Gender',
             dataIndex: 'gender',
             key: 'gender',
-            width: 100,
+            width: 80,
             filters: [
                 { text: 'Male', value: 'MALE' },
                 { text: 'Female', value: 'FEMALE' },
             ],
             onFilter: (value, record) => record.gender === value,
             render: (text, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
-            )
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
+                </div>
+            ),
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
         {
             title: 'Mode',
             dataIndex: 'mode',
             key: 'mode',
-            width: 120,
+            width: 100,
             filters: [
                 { text: 'Boarding', value: 'BOARDING' },
                 { text: 'Day Scholar', value: 'DAY' },
             ],
             onFilter: (value, record) => record.mode === value,
             render: (text, record) => (
-                <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
-            )
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    <span style={{ color: record.status ? 'inherit' : '#ff4d4f' }}>{text}</span>
+                </div>
+            ),
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            width: 100,
+            width: 80,
             render: (status, record) => (
-                <Tooltip title={`Click to ${status ? 'deactivate' : 'activate'}`}>
-                    <Tag
-                        bordered={false}
-                        color={status ? "success" : "error"}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleToggleStatus(record)}
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    <Tooltip title={`Click to ${status ? 'deactivate' : 'activate'}`}>
+                        <Tag
+                            bordered={false}
+                            color={status ? "success" : "error"}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => handleToggleStatus(record)}
 
-                    >
-                        {status ? 'Active' : 'Inactive'}
-                    </Tag>
-                </Tooltip>
+                        >
+                            {status ? 'Active' : 'Inactive'}
+                        </Tag>
+                    </Tooltip>
+                </div>
+
             ),
             filters: [
                 { text: 'Active', value: true },
                 { text: 'Inactive', value: false },
             ],
             onFilter: (value, record) => record.status === value,
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
         {
             title: 'Created At',
             dataIndex: 'createdAt',
             key: 'createdAt',
+            width: 120,
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
+            render: (text) => (
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    {text}
+                </div>
+            ),
         },
         {
             title: 'Created By',
             dataIndex: 'createdBy',
             key: 'createdBy',
+            width: 100,
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
+            render: (text) => (
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    {text}
+                </div>
+            ),
         },
         {
             title: 'Action',
             key: 'action',
-            width: 100,
+            width: 80,
             render: (_, record) => (
-                <Button
-                    type="link"
-                    icon={<EyeOutlined />}
-                    onClick={() => onViewStudent(record)}
-                    style={{ padding: 0 }}
-                >
-                    View
-                </Button>
+                <div style={{ ...tableCellStyle, textAlign: 'left'}}>
+                    <Button
+                        type="link"
+                        icon={<EyeOutlined />}
+                        onClick={() => onViewStudent(record)}
+                        style={{ padding: 0 }}
+                    >
+                        View
+                    </Button>
+                </div>
             ),
+            onHeaderCell: () => ({
+                style: tableHeaderStyle,
+            }),
         },
     ];
 
@@ -285,31 +378,76 @@ const StudentTable: React.FC<StudentTableProps> = ({ onViewStudent }) => {
                 />
                 <Table<Student>
                     {...tableProps}
-                    pagination={{
-                        position: ['none', bottom],
-                        defaultPageSize: pageSize,
-                        current: currentPage,
-                        total: totalRecords,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        onChange: handlePageChange,
-                        showTotal: (total) => `Total ${total} students`,
-                    }}
                     columns={columns}
-                    dataSource={students}
-                    rowKey="id"
+                    dataSource={dataWithKeys}
+                    rowKey="key"
                     loading={loading}
                     locale={{ emptyText: 'No Students Data' }}
-                    rowClassName={(record) => !record.status ? 'table-row-inactive' : ''}
-                    style={{
-                        backgroundColor: 'white',
-                        padding: 0,
-                        margin: 0,
-                    }}
+                    // rowClassName={(record) => !record.status ? 'table-row-inactive' : ''}
+                    size="small"
                 />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                    <Pagination
+                        current={currentPage}
+                        pageSize={pageSize}
+                        total={filteredStudents.length}
+                        onChange={handlePageChange}
+                        showSizeChanger={false}
+                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                    />
+                </div>
             </Space>
         </Card>
     );
 };
 
+const tableHeaderStyle: CSSProperties = {
+    border: '1px solid #e8e8e8',
+    padding: '4px 4px',
+    textAlign: 'left',
+    backgroundColor: '#f0f0f0',
+    fontWeight: 'bold',
+    fontSize: '0.75rem',
+    whiteSpace: 'nowrap',
+};
+
+const tableCellStyle: CSSProperties = {
+    padding: '1px 2px', // Reduced padding even further
+    lineHeight: '1', // Adjust as needed to control row height
+    fontSize: '0.75rem',
+};
+
+const tableContainerStyle: CSSProperties = {
+    fontSize: '0.85rem',
+    overflow: 'auto',
+    lineHeight: '1',
+    backgroundColor: '#fff',
+};
+const Loading: React.FC = () => {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
+            Loading...
+        </div>
+    );
+};
+
+
+
 export default StudentTable;
+
+// CSS Styles
+
+const styles = `
+  .compact-table-row td {
+    padding: 0px !important; /*  remove the standard cell padding for rows.*/
+    white-space: nowrap;  /* prevent text wrapping */
+    line-height: 1 !important;
+  }
+  .compact-table-row {
+     font-size: 0.75rem !important;
+  }
+`;
+
+const styleElement = document.createElement('style');
+styleElement.textContent = styles;
+document.head.appendChild(styleElement);
