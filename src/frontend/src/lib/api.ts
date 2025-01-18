@@ -28,7 +28,6 @@ import {
     SetupCategory,
     AppSetup,
     PromotionDTO,
-    DashboardStatsResponse,
     SupplierDTO,
     Supplier,
     SupplierInvoiceDTO,
