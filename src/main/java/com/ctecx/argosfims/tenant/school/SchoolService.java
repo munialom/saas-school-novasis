@@ -19,6 +19,10 @@ public class SchoolService {
 
     private final ObjectMapper objectMapper;
 
+    public List<Map<String, Object>> GetDashboardStats() {
+        return schoolRepository.GetDashboardStats();
+    }
+
     public Map<String, Object> deleteStudent(int id){
         return schoolRepository.deleteStudent(id);
     }

@@ -1,8 +1,11 @@
+
+
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 interface AppState {
-    loading: boolean;
-    setLoading: (loading: boolean) => void;
+    sideBarCollapse: boolean;
+    setSideBarCollapse: (sideBarCollapse: boolean) => void;
 }
 
 const AppStateContext = createContext<AppState | undefined>(undefined);
@@ -12,10 +15,10 @@ interface AppStateProviderProps {
 }
 
 export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) => {
-    const [loading, setLoading] = useState(false);
+    const [sideBarCollapse, setSideBarCollapse] = useState(false);
     const appState = {
-        loading,
-        setLoading,
+        sideBarCollapse,
+        setSideBarCollapse
     };
     return (
         <AppStateContext.Provider value={appState}>

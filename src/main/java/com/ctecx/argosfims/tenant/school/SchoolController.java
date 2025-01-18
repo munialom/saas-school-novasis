@@ -14,6 +14,11 @@ public class SchoolController {
 
     private final SchoolService schoolService;
 
+    @GetMapping("/statistics")
+    public ResponseEntity<List<Map<String, Object>>> GetDashboardStats(){
+        return ResponseEntity.ok(schoolService.GetDashboardStats());
+    }
+
     @DeleteMapping("/students/{id}")
     public ResponseEntity<Map<String, Object>> deleteStudent(@PathVariable int id){
         Map<String, Object> result =  schoolService.deleteStudent(id);

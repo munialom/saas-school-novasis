@@ -4,6 +4,7 @@ package com.ctecx.argosfims.tenant.users;
 
 
 import com.ctecx.argosfims.tenant.userroles.UserRole;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -47,11 +48,12 @@ public class User implements Serializable {
 
     private boolean enabled;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch =FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @JsonIgnore
     private Set<UserRole> roles = new HashSet<>();
 }

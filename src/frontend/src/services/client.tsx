@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+import { AxiosResponse } from 'axios';
+import {AccountChart, AccountChartRequest, ReportItem} from "../lib/services";
+
 const getApiBaseUrl = (): string => {
     try {
         const hostname = window.location.hostname;
@@ -29,9 +32,17 @@ interface LoginResponse {
 }
 export const login = async (usernameAndPassword: any): Promise<LoginResponse> => {
     try {
+        let loginPayload = usernameAndPassword;
+        if (window.location.hostname === 'localhost') { // Check for local environment
+            loginPayload = {
+                ...usernameAndPassword,
+                tenantOrClientId: 100 // Hardcode tenantOrClientId
+            };
+        }
+
         return await axios.post(
             `${getApiBaseUrl()}/api/auth/login`,
-            usernameAndPassword
+            loginPayload
         );
     } catch (e) {
         throw e;
@@ -47,33 +58,38 @@ export const logout = async (): Promise<any> => {
     }
 };
 
-
-interface Student {
-    // Define student properties based on your API
-    id?: number;
-    name: string;
-    // Add other properties as needed
-}
-
-export const getStudents = async (): Promise<any> => {
+//Account Charts
+export const getChartOfAccounts = async (): Promise<AxiosResponse<ReportItem[]>> => {
     try {
-        return await axios.get(
-            `${getApiBaseUrl()}/api/students`,
-            getAuthConfig()
-        );
-    } catch (e) {
-        throw e;
+        return await axios.get(`${getApiBaseUrl()}/api/v1/finance/accounts`, getAuthConfig());
+    } catch (error) {
+        throw error;
     }
 };
 
-export const saveStudent = async (student: Student): Promise<any> => {
+export const createAccountChart = async (request: AccountChartRequest): Promise<any> => {
     try {
-        return await axios.post(
-            `${getApiBaseUrl()}/api/students`,
-            student,
-            getAuthConfig()
-        );
-    } catch (e) {
-        throw e;
+        return await axios.post(`${getApiBaseUrl()}/api/v1/accounts`, request, getAuthConfig());
+    } catch (error) {
+        throw error;
     }
 };
+
+
+export const updateAccountChart = async (request: AccountChart): Promise<any> => {
+    try {
+        return await axios.put(`${getApiBaseUrl()}/api/v1/accounts`, request, getAuthConfig());
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const deleteAccountChart = async (id: number): Promise<any> => {
+    try {
+        return await axios.delete(`${getApiBaseUrl()}/api/v1/accounts/${id}`, getAuthConfig());
+    } catch (error) {
+        throw error;
+    }
+};
+
+

@@ -5,6 +5,8 @@ import java.util.Map;
 
 public interface CustomSchoolRepository {
 
+    List<Map<String, Object>> GetDashboardStats();
+
     List<Map<String, Object>> searchStudentsWithPagination(String searchTerm, int pageNumber);
     //Delete methods
     //New Toggle Status Method

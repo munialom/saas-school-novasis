@@ -1,9 +1,10 @@
+
+// src/frontend/src/components/common/PrivateRoute.tsx
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import LoadingState from "../../utils/ui/LoadingState";
-import { useAppState } from "../../context/AppState";
-
+//import ErrorBoundary from "./ErrorBoundary"; // Removed unused ErrorBoundary import
 
 interface PrivateRouteProps {
     children: React.ReactNode;
@@ -11,21 +12,17 @@ interface PrivateRouteProps {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     const { isAuthenticated } = useAuth();
-    const { loading } = useAppState();
+    const navigation = useNavigation()
     const navigate = useNavigate();
-
+    const isLoading = navigation.state === "loading";
     useEffect(() => {
-        if(!loading) {
-            if (!isAuthenticated()) {
-                navigate("/login");
-            }
+        if (!isAuthenticated()) {
+            navigate("/login");
         }
-    }, [isAuthenticated, navigate, loading]);
-
-
+    }, [isAuthenticated, navigate]);
 
     return (
-        <LoadingState loading={loading}>
+        <LoadingState loading={isLoading}>
             {isAuthenticated() ? children : null}
         </LoadingState>
     );

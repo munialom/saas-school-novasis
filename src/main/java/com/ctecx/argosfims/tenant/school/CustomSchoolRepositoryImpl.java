@@ -59,6 +59,11 @@ public class CustomSchoolRepositoryImpl implements CustomSchoolRepository {
     }
 
     @Override
+    public List<Map<String, Object>> GetDashboardStats() {
+        return getJdbcTemplate().queryForList("CALL GetDashboardStats()");
+    }
+
+    @Override
     public List<Map<String, Object>> searchStudentsWithPagination(String searchTerm, int pageNumber) {
         return getJdbcTemplate().queryForList("CALL sp_SearchPaginateStudents(?, ?)", searchTerm, pageNumber);
     }

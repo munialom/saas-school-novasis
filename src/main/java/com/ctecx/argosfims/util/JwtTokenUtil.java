@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,7 +59,31 @@ public class JwtTokenUtil implements Serializable {
         return doGenerateToken(userDetails, tenantOrClientId);
     }
 
+
     private String doGenerateToken(UserDetails userDetails, String tenantOrClientId) {
+        Map<String, Object> claims = new HashMap<>();
+        List<String> authorities=userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        System.out.println("Authorities inside tokenUtil " + authorities); //Debug purpose
+        // Add user roles to token claims
+        claims.put("scopes", authorities); //Set a breakpoint here
+
+        return Jwts.builder()
+                .claims(claims)
+                .subject(userDetails.getUsername())
+                .audience().add(tenantOrClientId).and()
+                .issuer("system")
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() +
+                        JWTConstants.ACCESS_TOKEN_VALIDITY_SECONDS * 1000))
+                .signWith(JWTConstants.getSigningKey())
+                .compact();
+    }
+
+/*    private String doGenerateToken(UserDetails userDetails, String tenantOrClientId) {
         Map<String, Object> claims = new HashMap<>();
 
         // Add user roles to token claims
@@ -77,7 +102,7 @@ public class JwtTokenUtil implements Serializable {
                         JWTConstants.ACCESS_TOKEN_VALIDITY_SECONDS * 1000))
                 .signWith(JWTConstants.getSigningKey())
                 .compact();
-    }
+    }*/
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);

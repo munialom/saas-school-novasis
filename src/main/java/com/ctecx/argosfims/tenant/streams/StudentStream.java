@@ -20,4 +20,6 @@ public class StudentStream extends AuditableBase {
     private String streamName;
 
     private boolean status;
+
+
 }

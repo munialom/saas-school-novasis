@@ -1,0 +1,84 @@
+/* LoginPage.css */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Arial', sans-serif;
+    background-color: #fff;
+
+}
+
+.left-side {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    padding-left: 100px;
+
+}
+
+.left-content{
+    max-width: 450px;
+    width: 100%;
+}
+
+.logo {
+    width: 180px;
+    margin-bottom: 20px;
+}
+.feature-list{
+    margin-bottom: 20px;
+    color: #292F33;
+
+}
+.feature-list span{
+    font-weight: 600;
+    margin-right: 5px
+}
+
+.feature-list p{
+    font-weight: 400;
+}
+
+.right-side {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: #fff;
+}
+
+.login-form {
+    max-width: 400px;
+    width: 100%;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.icons{
+    margin-top: 20px;
+}
+.slack-icon::before {
+    content: url('https://i.imgur.com/l6c938F.png'); /* Replace with your actual icon URL */
+}
+.home-icon::before {
+    content: url('https://i.imgur.com/Xo59Bqf.png');
+}
+.folder-icon::before {
+    content: url('https://i.imgur.com/x7b4t2a.png');
+}
+.cloud-icon::before {
+    content: url('https://i.imgur.com/w3FmP5i.png');
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    .left-side {
+        padding-left: 20px;
+    }
+}

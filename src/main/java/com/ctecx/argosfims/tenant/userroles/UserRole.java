@@ -4,12 +4,14 @@ package com.ctecx.argosfims.tenant.userroles;
 
 
 import com.ctecx.argosfims.tenant.users.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -31,5 +33,28 @@ public class UserRole {
     private String roleDescription;
 
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
     private Set<User> users = new HashSet<>();
+
+    @Override
+    public String toString() {
+        return "UserRole{" +
+                "roleId=" + roleId +
+                ", roleName='" + roleName + '\'' +
+                '}';
+    }
+
+    // Custom equals and hashCode using only the ID
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserRole)) return false;
+        UserRole userRole = (UserRole) o;
+        return Objects.equals(getRoleId(), userRole.getRoleId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getRoleId());
+    }
 }

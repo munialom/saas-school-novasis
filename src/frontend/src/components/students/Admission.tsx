@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Card, Dropdown, Button } from 'antd';
+import { Tabs, Dropdown, Button } from 'antd';
 import {
     TeamOutlined,
     UnorderedListOutlined,
@@ -10,21 +11,21 @@ import {
     UploadOutlined,
     UsergroupAddOutlined,
     MessageOutlined,
-    SettingFilled,
+    ArrowLeftOutlined,
 } from '@ant-design/icons';
 
 import StudentTable from './components/StudentTable';
 import ClassList from './components/ClassList';
-
 import StudentProfile from './components/StudentProfile';
 import AdmissionForm from './components/AdmissionForm';
 import ClassForm from './components/ClassForm';
 import StreamForm from './components/StreamForm';
 import BulkUpload from './components/BulkUpload';
+import StreamList from "./components/StreamList";
 
 import type { Student } from '../../lib/types';
 import type { MenuProps } from 'antd';
-import StreamList from "./components/StreamList.tsx";
+import type { TabsProps } from 'antd';
 
 const StudentAdmission: React.FC = () => {
     const [activeTabKey, setActiveTabKey] = useState<string>('student-records');
@@ -46,34 +47,27 @@ const StudentAdmission: React.FC = () => {
 
     const handleAdmissionSuccess = () => {
         setShowAdmissionForm(false);
-        // Refresh student list if needed
         if(activeTabKey === 'student-records') {
-            // Force a re-render of the student table by updating the activeTabKey
             setActiveTabKey('student-records-refreshed');
-            setTimeout(() => setActiveTabKey('student-records'), 0); // Reset immediately to the previous key
+            setTimeout(() => setActiveTabKey('student-records'), 0);
         }
     };
 
     const handleClassSuccess = () => {
         setShowClassForm(false);
-        // Refresh class list if needed
         if (activeTabKey === 'class-lists') {
             setActiveTabKey('class-lists-refreshed');
-            setTimeout(() => setActiveTabKey('class-lists'), 0); // Reset immediately to the previous key
+            setTimeout(() => setActiveTabKey('class-lists'), 0);
         }
-
     };
 
     const handleStreamSuccess = () => {
         setShowStreamForm(false);
-        // Refresh stream list if needed
         if(activeTabKey === 'streams-lists') {
             setActiveTabKey('streams-lists-refreshed');
             setTimeout(() => setActiveTabKey('streams-lists'), 0);
         }
-
     };
-
 
     const menuItems: MenuProps['items'] = [
         {
@@ -122,32 +116,6 @@ const StudentAdmission: React.FC = () => {
         },
     ];
 
-    const tabList = [
-        {
-            key: 'student-records',
-            label: (
-                <span>
-                    <TeamOutlined /> Student Records
-                </span>
-            ),
-        },
-        {
-            key: 'class-lists',
-            label: (
-                <span>
-                    <UnorderedListOutlined /> Class Lists
-                </span>
-            ),
-        },
-        {
-            key: 'streams-lists',
-            label: (
-                <span>
-                    <BookOutlined /> Streams Lists
-                </span>
-            ),
-        },
-    ];
 
     const getStudentRecordsContent = () => {
         if (bulkUploadType) {
@@ -159,11 +127,36 @@ const StudentAdmission: React.FC = () => {
         return <StudentTable onViewStudent={handleViewStudent} />;
     };
 
-    const contentList: Record<string, React.ReactNode> = {
-        'student-records': getStudentRecordsContent(),
-        'class-lists': <ClassList />,
-        'streams-lists': <StreamList />,
-    };
+    const tabItems: TabsProps['items'] = [
+        {
+            key: 'student-records',
+            label: (
+                <span>
+                    <TeamOutlined /> Student Records
+                </span>
+            ),
+            children: getStudentRecordsContent(),
+        },
+        {
+            key: 'class-lists',
+            label: (
+                <span>
+                    <UnorderedListOutlined /> Class Lists
+                </span>
+            ),
+            children: <ClassList />,
+        },
+        {
+            key: 'streams-lists',
+            label: (
+                <span>
+                    <BookOutlined /> Streams Lists
+                </span>
+            ),
+            children: <StreamList />,
+        },
+    ];
+
 
     const onTabChange = (key: string) => {
         setActiveTabKey(key);
@@ -172,23 +165,43 @@ const StudentAdmission: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '16px' }}>
-            <Card
-                style={{ width: '100%' }}
-                tabList={tabList}
-                activeTabKey={activeTabKey}
-                tabBarExtraContent={
-                    <Dropdown menu={{ items: menuItems }} placement="bottomRight">
-                        <Button type="text" icon={<SettingFilled />} />
-                    </Dropdown>
-                }
-                onTabChange={onTabChange}
-                tabProps={{ size: 'middle' }}
-            >
-                {contentList[activeTabKey]}
-            </Card>
+        <div style={{
+            padding: '10px',
+            backgroundColor: '#ffffff',
+            minHeight: '100vh'
+        }}>
+            {/* Header Section with dotted line */}
+            <div style={{
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px dotted #e8e8e8',
+                paddingBottom: '10px',
+                backgroundColor: '#ffffff'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Button
+                        icon={<ArrowLeftOutlined />}
+                        type="text"
+                        style={{ marginRight: '8px' }}
+                    />
+                    <h2 style={{ margin: 0 }}>Students Register</h2>
+                </div>
+                <Dropdown menu={{ items: menuItems }} placement="bottomRight">
+                    <Button type="primary">Actions</Button>
+                </Dropdown>
+            </div>
 
-            {/* Drawer Forms */}
+            {/* Main Content Tabs */}
+            <Tabs
+                activeKey={activeTabKey}
+                onChange={onTabChange}
+                items={tabItems}
+                size="middle"
+            />
+
+            {/* Forms */}
             <AdmissionForm
                 onSuccess={handleAdmissionSuccess}
                 onCancel={() => setShowAdmissionForm(false)}
