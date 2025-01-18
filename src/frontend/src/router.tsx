@@ -10,7 +10,7 @@ import InternalServerError from './components/errors/InternalServerError';
 import NotFoundError from './components/errors/NotFoundError';
 
 
-/*const Dashboard = lazy(() => import('./components/dashboard/Dashboard'));*/
+const Dashboard = lazy(() => import('./components/dashboard/Dashboard'));
 const Admission = lazy(() => import('./components/students/Admission'));
 const FeeSettings = lazy(() => import('./components/finance/ChartsOfAccounts.tsx'));
 const ReceiveFees = lazy(() => import('./components/finance/ReceiveFees'));
@@ -43,7 +43,7 @@ const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                /*element: <Dashboard />,*/
+                element: <Dashboard />,
             },
 
             {///reports/financial

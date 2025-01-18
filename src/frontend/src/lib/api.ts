@@ -590,9 +590,9 @@ export const promoteStudentsApi = async (promotionDTO: PromotionDTO): Promise<an
 
 
 
+type ApiResponse<T> = AxiosResponse<T>;
 
-
-export const getDashboardStats = async (): Promise<AxiosResponse<DashboardStatsResponse>> => {
+export const getDashboardStats = async (): Promise<ApiResponse<any>> => {
     try {
         return await axios.get(
             `${getApiBaseUrl()}/api/v1/school/statistics`,
@@ -602,6 +602,18 @@ export const getDashboardStats = async (): Promise<AxiosResponse<DashboardStatsR
         throw e;
     }
 };
+
+
+/*export const getDashboardStats = async (): Promise<AxiosResponse<DashboardStatsResponse>> => {
+    try {
+        return await axios.get(
+            `${getApiBaseUrl()}/api/v1/school/statistics`,
+            getAuthConfig()
+        );
+    } catch (e) {
+        throw e;
+    }
+};*/
 
 
 // New API call for generating a student report

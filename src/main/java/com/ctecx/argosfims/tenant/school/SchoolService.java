@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +21,112 @@ public class SchoolService {
 
     private final ObjectMapper objectMapper;
 
+/*
     public List<Map<String, Object>> GetDashboardStats() {
         return schoolRepository.GetDashboardStats();
     }
+*/
+
+    public String getDashboardStats() throws JsonProcessingException {
+        List<Map<String, Object>> rawData =  schoolRepository.GetDashboardStats();
+
+        // Check for empty data
+        if (rawData == null || rawData.isEmpty()) {
+            return "[]"; // Return empty JSON array
+        }
+
+        Map<String, Object> dashboardStats = rawData.get(0); // Get the single result
+
+        if (dashboardStats == null){
+            return "[]";
+        }
+
+        // Format numeric values
+        dashboardStats.put("total_students", formatNumber(dashboardStats.get("total_students")));
+        dashboardStats.put("session_students", formatNumber(dashboardStats.get("session_students")));
+        dashboardStats.put("transfer_students", formatNumber(dashboardStats.get("transfer_students")));
+        dashboardStats.put("alumni_students", formatNumber(dashboardStats.get("alumni_students")));
+        dashboardStats.put("total_classes", formatNumber(dashboardStats.get("total_classes")));
+        dashboardStats.put("total_streams", formatNumber(dashboardStats.get("total_streams")));
+        dashboardStats.put("payment_count", formatNumber(dashboardStats.get("payment_count")));
+        dashboardStats.put("invoice_count", formatNumber(dashboardStats.get("invoice_count")));
+
+        // Format currency values
+        dashboardStats.put("total_payments", formatCurrency(dashboardStats.get("total_payments")));
+        dashboardStats.put("total_invoices", formatCurrency(dashboardStats.get("total_invoices")));
+        dashboardStats.put("total_balance", formatCurrency(dashboardStats.get("total_balance")));
+
+        // Convert class distribution to actual JSON objects
+        String classDistributionString  = (String) dashboardStats.get("class_distribution");
+        if (classDistributionString != null && !classDistributionString.isEmpty())
+        {
+            try {
+                List<Map<String, Object>> classDistribution = objectMapper.readValue(classDistributionString, List.class);
+                dashboardStats.put("class_distribution", classDistribution);
+            }
+            catch (JsonProcessingException e){
+                //Handle error or leave as string
+                System.err.println("Error parsing class distribution JSON:" + e);
+            }
+        }else{
+            dashboardStats.put("class_distribution", null);
+        }
+
+
+        // Convert monthly trends to actual JSON objects
+        String monthlyTrendsString  = (String) dashboardStats.get("monthly_trends");
+
+        if (monthlyTrendsString != null && !monthlyTrendsString.isEmpty())
+        {
+            try {
+                List<Map<String, Object>> monthlyTrends = objectMapper.readValue(monthlyTrendsString, List.class);
+                dashboardStats.put("monthly_trends", monthlyTrends);
+            } catch (JsonProcessingException e) {
+                //Handle error or leave as string
+                System.err.println("Error parsing monthly trends JSON: " + e);
+            }
+        }else{
+            dashboardStats.put("monthly_trends", null);
+        }
+
+
+        // Convert the result to JSON using ObjectMapper
+        String jsonResult = objectMapper.writeValueAsString(List.of(dashboardStats));
+
+        return jsonResult;
+    }
+
+
+    private String formatCurrency(Object value) {
+        if (value == null) {
+            return "0.00"; // or any default value
+        }
+        try {
+            BigDecimal amount = new BigDecimal(String.valueOf(value));
+            // use kenyan shilling format
+            DecimalFormat df = new DecimalFormat("#,##0.00");
+            return df.format(amount);
+
+        } catch (NumberFormatException e) {
+            System.err.println("Error formatting currency:" + e);
+            return String.valueOf(value); // return original string if conversion fails
+        }
+    }
+
+    private Number formatNumber(Object value) {
+        if (value == null) {
+            return 0; // or any default value
+        }
+        try {
+            return  BigDecimal.valueOf(Double.parseDouble(String.valueOf(value))).intValue();
+        }catch (NumberFormatException e){
+            System.err.println("Error formatting number: " + e);
+            return  0; // return default number if parsing fails
+        }
+
+    }
+
+
 
     public Map<String, Object> deleteStudent(int id){
         return schoolRepository.deleteStudent(id);

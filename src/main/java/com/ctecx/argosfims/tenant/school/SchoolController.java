@@ -1,5 +1,6 @@
 package com.ctecx.argosfims.tenant.school;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +16,8 @@ public class SchoolController {
     private final SchoolService schoolService;
 
     @GetMapping("/statistics")
-    public ResponseEntity<List<Map<String, Object>>> GetDashboardStats(){
-        return ResponseEntity.ok(schoolService.GetDashboardStats());
+    public ResponseEntity<String> GetDashboardStats() throws JsonProcessingException {
+        return ResponseEntity.ok(schoolService.getDashboardStats());
     }
 
     @DeleteMapping("/students/{id}")

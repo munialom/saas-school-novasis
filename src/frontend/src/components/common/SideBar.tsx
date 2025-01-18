@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Drawer, Avatar, Badge, Switch } from 'antd';
 import {
@@ -53,12 +54,12 @@ const items: MenuItem[] = [
         getItem('Accounts Setup', 'menu-finance-settings', <SettingOutlined />),
         getItem('Invoice Menu', 'menu-finance-receive-fees', <CreditCardOutlined />),
         getItem('Payment Processing', 'menu-finance-payment-reports', <FileTextOutlined />),
-/*        getItem('Bursary Processing', 'menu-finance-payment-bursary', <FileTextOutlined />),*/
+  /*      getItem('Bursary Processing', 'menu-finance-payment-bursary', <FileTextOutlined />),*/
         getItem('Payment Vouchers', 'menu-finance-payment-vouchers', <FileTextOutlined />),
         getItem('Supplier Invoices', 'menu-finance-supplier-invoices', <FileTextOutlined />),
         getItem('Add Supplier', 'menu-finance-suppliers', <FileTextOutlined />),//
         getItem('Add Project', 'menu-add-project', <FileTextOutlined />),
-       /* getItem('LPO Processing', 'menu-finance-supplier-lpo', <FileTextOutlined />),*/
+/*        getItem('LPO Processing', 'menu-finance-supplier-lpo', <FileTextOutlined />),*/
         getItem('Financial Overview', 'menu-finance-overview', <BarChartOutlined />),
     ]),
     getItem('Reports', 'menu-reports', <BarChartOutlined />, [
@@ -203,7 +204,7 @@ const Sidebar: React.FC<SidebarProps> = ({setOpenDrawer, openDrawer}) => {
             >
                 <Badge dot={!collapsed}
                        status={status === 'online' ? 'success' : status === 'away' ? 'warning' : 'default'}>
-                    <Avatar style={{backgroundColor: '#03387e', verticalAlign: 'middle'}} size="large">
+                    <Avatar style={{backgroundColor: '#001025', verticalAlign: 'middle'}} size="large">
                         {email.charAt(0).toUpperCase()}
                     </Avatar>
                 </Badge>
@@ -303,7 +304,7 @@ const Sidebar: React.FC<SidebarProps> = ({setOpenDrawer, openDrawer}) => {
                 inlineCollapsed={collapsed}
             />
 
-            {/* Theme Toggle at the bottom */}
+
             <div style={{
                 padding: '16px',
                 display: 'flex',
@@ -379,3 +380,4 @@ const Sidebar: React.FC<SidebarProps> = ({setOpenDrawer, openDrawer}) => {
 };
 
 export default Sidebar;
+

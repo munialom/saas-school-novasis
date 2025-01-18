@@ -32,6 +32,7 @@ public class StudentServiceImpl implements StudentService {
                 );
             }
             Student student = new Student();
+            student.setStatus(true);
             mapDTOToStudent(studentDTO, student);
             return studentRepository.save(student);
         } catch (IllegalArgumentException e) {
