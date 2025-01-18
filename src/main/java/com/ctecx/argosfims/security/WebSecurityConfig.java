@@ -40,7 +40,8 @@ public class WebSecurityConfig {
 
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
-
+    @Autowired
+    private UnauthenticatedRequestFilter unauthenticatedRequestFilter;
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -91,7 +92,7 @@ public class WebSecurityConfig {
                                     "/logo192.png",
                                     "/logo512.png",
                                     "/api/auth/login",
-                                    "/login"
+                                    "/login", "/api/unauthenticated/**"
                             ).permitAll()
                             .requestMatchers(
                                     "/api/product/**",
@@ -104,6 +105,7 @@ public class WebSecurityConfig {
                             .anyRequest().permitAll(); // Allow all other requests
                 })
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(unauthenticatedRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
