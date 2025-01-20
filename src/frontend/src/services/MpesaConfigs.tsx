@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Steps, Form, Input, Button, Switch, message, Row, Col, Card } from 'antd';
 import { LoadingOutlined, CheckCircleOutlined, SettingOutlined } from '@ant-design/icons';
-import { MpesaConfigService } from './MpesaConfigService'; //Import the service
+import { MpesaConfigService } from './MpesaConfigService'; // Import the service
 
 const MpesaConfigs: React.FC = () => {
     const [current, setCurrent] = useState(0);
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
     const [mpesaConfig, setMpesaConfig] = useState<any>(null);
-
 
     useEffect(() => {
         loadConfig();
@@ -18,9 +18,13 @@ const MpesaConfigs: React.FC = () => {
         setLoading(true);
         try {
             const configData = await MpesaConfigService.getMpesaConfigurations();
-            if (configData.length > 0) {
-                setMpesaConfig(configData[0]);
-                form.setFieldsValue(configData[0]);
+            if (configData && configData.length > 0) {
+                const config = configData[0];
+                setMpesaConfig(config);
+                form.setFieldsValue(config); // Load values into the form
+            } else {
+                form.resetFields();
+                setMpesaConfig(null)
             }
             console.log('Configurations loaded ', configData);
 
@@ -210,7 +214,6 @@ const MpesaConfigs: React.FC = () => {
                                 <Input />
                             </Form.Item>
                         </Col>
-
                     </Row>
                 </Card>
             ),
@@ -272,15 +275,15 @@ const MpesaConfigs: React.FC = () => {
     const onFinish = async (values: any) => {
         setLoading(true);
         try {
-            if (mpesaConfig) {
-                //update existing config
+            if (mpesaConfig && mpesaConfig.id) {
+                // Update existing config
                 await MpesaConfigService.updateMpesaConfigurations(mpesaConfig.id, values);
             } else {
-                //create a new config
+                // Create a new config if no existing config
                 await MpesaConfigService.createMpesaConfigurations(values);
             }
             message.success("Mpesa configurations updated successfully");
-            await loadConfig();
+            await loadConfig(); // Reload to reflect changes
         } catch (error) {
             console.error("Error updating mpesa configurations", error);
             message.error("Failed to update configurations. Please try again.");
@@ -333,4 +336,5 @@ const MpesaConfigs: React.FC = () => {
         </Card>
     );
 };
+
 export default MpesaConfigs;

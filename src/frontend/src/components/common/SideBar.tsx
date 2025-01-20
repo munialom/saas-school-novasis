@@ -18,7 +18,7 @@ import {
     CloseCircleOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    MoonOutlined, PhoneOutlined,
+    MoonOutlined, MobileOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -54,12 +54,12 @@ const items: MenuItem[] = [
         getItem('Accounts Setup', 'menu-finance-settings', <SettingOutlined />),
         getItem('Invoice Menu', 'menu-finance-receive-fees', <CreditCardOutlined />),
         getItem('Payment Processing', 'menu-finance-payment-reports', <FileTextOutlined />),
-     getItem('Bursary Processing', 'menu-finance-payment-bursary', <FileTextOutlined />),
+     /*getItem('Bursary Processing', 'menu-finance-payment-bursary', <FileTextOutlined />),*/
         getItem('Payment Vouchers', 'menu-finance-payment-vouchers', <FileTextOutlined />),
         getItem('Supplier Invoices', 'menu-finance-supplier-invoices', <FileTextOutlined />),
         getItem('Add Supplier', 'menu-finance-suppliers', <FileTextOutlined />),//
         getItem('Add Project', 'menu-add-project', <FileTextOutlined />),
-       getItem('LPO Processing', 'menu-finance-supplier-lpo', <FileTextOutlined />),
+    /*   getItem('LPO Processing', 'menu-finance-supplier-lpo', <FileTextOutlined />),*/
         getItem('Financial Overview', 'menu-finance-overview', <BarChartOutlined />),
     ]),
     getItem('Reports', 'menu-reports', <BarChartOutlined />, [
@@ -68,7 +68,7 @@ const items: MenuItem[] = [
     getItem('Settings', 'menu-settings', <SettingOutlined />, [
         getItem('System Settings', 'menu-settings-system', <ToolOutlined />),
         getItem('User Management', 'menu-settings-users', <UserSwitchOutlined />),
-        getItem('MPESA Config', 'menu-settings-mpesa', <PhoneOutlined />),
+        getItem('MPESA Config', 'menu-settings-mpesa', <MobileOutlined />),
     ]),
 ];
 
