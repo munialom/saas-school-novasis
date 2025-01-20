@@ -57,6 +57,7 @@ public class AccountChart extends AuditableBase {
 
     private boolean receivable;
     private boolean payable;
+    private boolean defaultOverpaymentsAccount;
 
 
 }

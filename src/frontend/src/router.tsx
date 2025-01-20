@@ -30,6 +30,8 @@ const ReportGenerator = lazy(() => import('./components/reports/ReportGenerator.
 const SupplierManagementTabs = lazy(() => import('./components/settings/SupplierManagementTabs.tsx'));
 const FinancialReport = lazy(() => import('./components/finance/statements/FinancialReport.tsx'));
 const ProjectManagementTabs = lazy(() => import('./components/settings/ProjectManagementTabs.tsx'));
+const MpesaConfigs = lazy(() => import('./services/MpesaConfigs.tsx'));
+///settings/mpesa
 const router = createBrowserRouter([
     {
         path: '/login',
@@ -46,7 +48,11 @@ const router = createBrowserRouter([
                 element: <Dashboard />,
             },
 
-            {///reports/financial
+            {
+                path: '/settings/mpesa',
+                element: <MpesaConfigs/>,
+            },
+            {
                 path: '/reports/financial',
                 element: <FinancialReport/>,
             },

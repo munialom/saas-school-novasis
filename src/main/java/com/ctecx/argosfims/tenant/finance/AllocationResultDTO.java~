@@ -1,0 +1,4 @@
+package com.ctecx.argosfims.tenant.finance;
+
+public class AllocationResultDTO {
+}

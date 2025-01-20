@@ -18,7 +18,7 @@ import {
     CloseCircleOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    MoonOutlined,
+    MoonOutlined, PhoneOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -68,6 +68,7 @@ const items: MenuItem[] = [
     getItem('Settings', 'menu-settings', <SettingOutlined />, [
         getItem('System Settings', 'menu-settings-system', <ToolOutlined />),
         getItem('User Management', 'menu-settings-users', <UserSwitchOutlined />),
+        getItem('MPESA Config', 'menu-settings-mpesa', <PhoneOutlined />),
     ]),
 ];
 
@@ -158,6 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({setOpenDrawer, openDrawer}) => {
         'menu-settings-academic-years': '/settings/academic-years',
         'menu-settings-classes': '/settings/classes',
         'menu-settings-system': '/settings/system',
+        'menu-settings-mpesa': '/settings/mpesa',
         'menu-settings-users': '/settings/users',
     };
 

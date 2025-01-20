@@ -1,3 +1,4 @@
+
 package com.ctecx.argosfims.tenant.transactions;
 
 import lombok.AllArgsConstructor;
@@ -19,4 +20,6 @@ public class PaymentRequest {
     private String ref;
     private Integer bankId;
     private List<StudentFeePaymentRequest> studentFeePaymentRequests;
+    private boolean manualAllocation;
+    private Double amountPaid; // Add amountPaid field
 }

@@ -1,11 +1,15 @@
 package com.ctecx.argosfims.tenant.accounting;
 
 import com.ctecx.argosfims.tenant.chartofaccounts.AccountChart;
-import com.ctecx.argosfims.tenant.chartofaccounts.AccountGroup;
 import com.ctecx.argosfims.tenant.chartofaccounts.AccountChartService;
+import com.ctecx.argosfims.tenant.chartofaccounts.AccountGroup;
 import com.ctecx.argosfims.tenant.config.TenantJdbcTemplateConfig;
 import com.ctecx.argosfims.tenant.classess.StudentClass;
+import com.ctecx.argosfims.tenant.finance.AllocationResultDTO;
 import com.ctecx.argosfims.tenant.finance.CustomFinanceRepository;
+import com.ctecx.argosfims.tenant.finance.StudentAutoMappingService;
+import com.ctecx.argosfims.tenant.finance.VoteheadDTO;
+
 import com.ctecx.argosfims.tenant.school.CustomSchoolRepository;
 import com.ctecx.argosfims.tenant.streams.StudentStream;
 import com.ctecx.argosfims.tenant.students.Admission;
@@ -35,6 +39,8 @@ public class StudentPaymentProcessor {
     private final CustomSchoolRepository schoolRepository;
     private final TenantJdbcTemplateConfig tenantJdbcTemplateConfig;
     private final NonProfitAccountingSystem accountingSystem;
+    private final StudentAutoMappingService studentAutoMappingService;
+    private final AccountChartService accountChartService;
 
     // Helper method to get JdbcTemplate
     private JdbcTemplate getJdbcTemplate() {
@@ -66,27 +72,88 @@ public class StudentPaymentProcessor {
             throw ex;
         }
 
-        for (StudentFeePaymentRequest payment : paymentRequest.getStudentFeePaymentRequests()) {
-            log.debug("Processing payment for account: {}", payment.getAccountName());
+        if (paymentRequest.isManualAllocation()) {
+            //Process Manual Allocation
+            log.info("Processing manual allocation for student ID: {}", paymentRequest.getStudentId());
+            for (StudentFeePaymentRequest payment : paymentRequest.getStudentFeePaymentRequests()) {
+                log.debug("Processing payment for account: {}", payment.getAccountName());
 
-            // Debit Bank account
-            entries.add(createTransactionEntry(bankAccount, BigDecimal.valueOf(payment.getAmount()), true));
-            log.debug("Debit entry created for bank account: {}", bankAccount.getName());
+                // Debit Bank account
+                entries.add(createTransactionEntry(bankAccount, BigDecimal.valueOf(payment.getAmount()), true));
+                log.debug("Debit entry created for bank account: {}", bankAccount.getName());
 
 
-            // Credit the Account Receivable
-            AccountChart receivableAccount = null;
-            try {
-                receivableAccount = getAccountChart(payment.getAccountName().trim(),"receivable");
-                log.debug("Retrieved receivable account: {}", receivableAccount);
-            }catch (Exception ex){
-                log.error("Error getting receivable account with name {}, error: {}",payment.getAccountName(), ex.getMessage(), ex);
-                throw ex;
+                // Credit the Account Receivable
+                AccountChart receivableAccount = null;
+                try {
+                    receivableAccount = getAccountChart(payment.getAccountName().trim(), "receivable");
+                    log.debug("Retrieved receivable account: {}", receivableAccount);
+                } catch (Exception ex) {
+                    log.error("Error getting receivable account with name {}, error: {}", payment.getAccountName(), ex.getMessage(), ex);
+                    throw ex;
+                }
+                entries.add(createTransactionEntry(receivableAccount, BigDecimal.valueOf(payment.getAmount()), false));
+                log.debug("Credit entry created for account: {}", receivableAccount.getName());
+                log.debug("Finished processing payment for account: {}", payment.getAccountName());
             }
-            entries.add(createTransactionEntry(receivableAccount, BigDecimal.valueOf(payment.getAmount()), false));
-            log.debug("Credit entry created for account: {}", receivableAccount.getName());
-            log.debug("Finished processing payment for account: {}", payment.getAccountName());
+        } else {
+            // Process Dynamic Allocation
+            log.info("Processing dynamic allocation for student ID: {}", paymentRequest.getStudentId());
+            AllocationResultDTO allocationResult = studentAutoMappingService.allocatePayment(paymentRequest.getStudentId(), paymentRequest.getAmountPaid());
+            log.debug("Allocation result: {}", allocationResult);
+            List<com.ctecx.argosfims.tenant.finance.VoteheadDTO> allocatedPayments = allocationResult.getVoteheadDTOS();
+            AccountChart overPaymentAccount =  allocationResult.getOverpaymentAccount();
+
+            for (com.ctecx.argosfims.tenant.finance.VoteheadDTO payment : allocatedPayments) {
+                if(payment.getPaidAmount() > 0){
+                    AccountChart receivableAccount = null;
+                    if(!allocationResult.isHasOverpayment() || !payment.getName().equals(overPaymentAccount != null? overPaymentAccount.getName() : "")){
+                        log.debug("Processing payment for account: {}", payment.getName());
+                        try {
+                            receivableAccount = getAccountChart(payment.getName().trim(), "receivable");
+                            log.debug("Retrieved receivable account: {}", receivableAccount);
+                        } catch (Exception ex) {
+                            log.error("Error getting receivable account with name {}, error: {}", payment.getName(), ex.getMessage(), ex);
+                            throw ex;
+                        }
+
+                        // Debit Bank account
+                        entries.add(createTransactionEntry(bankAccount, BigDecimal.valueOf(payment.getPaidAmount()), true));
+                        log.debug("Debit entry created for bank account: {}", bankAccount.getName());
+
+                        // Credit the Account Receivable
+                        entries.add(createTransactionEntry(receivableAccount, BigDecimal.valueOf(payment.getPaidAmount()), false));
+                        log.debug("Credit entry created for account: {}", receivableAccount.getName());
+                        log.debug("Finished processing payment for account: {}", payment.getName());
+                    } else {
+                        // Handle overpayment liability
+                        if(overPaymentAccount != null){
+                            log.debug("Processing payment for overpayment liability: {}", payment.getName());
+                            //Debit the Bank Account
+                            entries.add(createTransactionEntry(bankAccount, BigDecimal.valueOf(payment.getPaidAmount()), true));
+                            //Credit the overpayment account
+                            entries.add(createTransactionEntry(overPaymentAccount,BigDecimal.valueOf(payment.getPaidAmount()), false));
+                            log.debug("Debit and Credit entry created for overpayment liability account: {}", overPaymentAccount.getName());
+                            log.debug("Finished processing payment for overpayment liability: {}", payment.getName());
+                        }
+
+                    }
+
+                }
+
+            }
+            //Handle case where the only entry was for overpayment and it is zero
+            if(allocationResult.isHasOverpayment() && entries.isEmpty() && overPaymentAccount != null){
+                com.ctecx.argosfims.tenant.finance.VoteheadDTO payment =   allocatedPayments.stream().filter(votehead -> votehead.getName().equals(overPaymentAccount.getName())).findFirst().orElse(null);
+                if(payment != null){
+                    entries.add(createTransactionEntry(bankAccount, BigDecimal.valueOf(payment.getPaidAmount()), true));
+                    entries.add(createTransactionEntry(overPaymentAccount, BigDecimal.valueOf(payment.getPaidAmount()), false));
+                }
+
+            }
+
         }
+
 
         String term = getTerm(paymentRequest.getPaymentDate(), paymentRequest.getTerm());
         log.debug("Recording entry for student ID: {}", paymentRequest.getStudentId());
@@ -97,7 +164,7 @@ public class StudentPaymentProcessor {
                     paymentRequest.getPayMode(),
                     "Student Payment",
                     entries,
-                     paymentRequest.getStudentId().toString()
+                    paymentRequest.getStudentId().toString()
             );
             if(transactions != null && !transactions.isEmpty()){
                 transactions.forEach(transaction -> {
@@ -236,26 +303,32 @@ public class StudentPaymentProcessor {
             log.error("Bank ID cannot be null");
             throw new IllegalArgumentException("Bank ID cannot be null");
         }
-        if (paymentRequest.getStudentFeePaymentRequests() == null || paymentRequest.getStudentFeePaymentRequests().isEmpty()) {
-            log.error("Student Fee Payment Requests cannot be null or empty");
-            throw new IllegalArgumentException("Student Fee Payment Requests cannot be null or empty");
-        }
-        for (StudentFeePaymentRequest request : paymentRequest.getStudentFeePaymentRequests()) {
-            if (request == null) {
-                log.error("Student Fee Payment Request cannot be null");
-                throw new IllegalArgumentException("Student Fee Payment Request cannot be null");
+        if (paymentRequest.isManualAllocation()) {
+            if (paymentRequest.getStudentFeePaymentRequests() == null || paymentRequest.getStudentFeePaymentRequests().isEmpty()) {
+                log.error("Student Fee Payment Requests cannot be null or empty for manual allocation");
+                throw new IllegalArgumentException("Student Fee Payment Requests cannot be null or empty for manual allocation");
             }
-            if (request.getAccountName() == null || request.getAccountName().trim().isEmpty()) {
-                log.error("Student Fee Account name cannot be null or empty");
-                throw new IllegalArgumentException("Student Fee Account name cannot be null or empty");
+            for (StudentFeePaymentRequest request : paymentRequest.getStudentFeePaymentRequests()) {
+                if (request == null) {
+                    log.error("Student Fee Payment Request cannot be null");
+                    throw new IllegalArgumentException("Student Fee Payment Request cannot be null");
+                }
+                if (request.getAccountName() == null || request.getAccountName().trim().isEmpty()) {
+                    log.error("Student Fee Account name cannot be null or empty");
+                    throw new IllegalArgumentException("Student Fee Account name cannot be null or empty");
+                }
+                if (request.getAmount() <= 0) {
+                    log.error("Student Fee payment amount must be positive");
+                    throw new IllegalArgumentException("Student Fee payment amount must be positive");
+                }
             }
-            if (request.getAmount() <= 0) {
-                log.error("Student Fee payment amount must be positive");
-                throw new IllegalArgumentException("Student Fee payment amount must be positive");
+        }else{
+            if(paymentRequest.getAmountPaid() == null || paymentRequest.getAmountPaid() <=0 ){
+                log.error("Amount Paid must be provided and positive for dynamic allocation");
+                throw new IllegalArgumentException("Amount Paid must be provided and positive for dynamic allocation");
             }
         }
         log.info("Payment request validation completed successfully");
 
     }
-
 }

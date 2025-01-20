@@ -33,6 +33,19 @@ public class ReceiptController {
     private final FinanceService financeService;
     private final InvoiceGenerator invoiceGenerator;
 
+
+    private final StudentAutoMappingService studentAutoMappingService;
+
+
+    @GetMapping("/test-balances/{studentId}")
+    public ResponseEntity<List<AccountBalanceDTO>> getAccountBalances(@PathVariable int studentId) {
+        List<AccountBalanceDTO> accountBalances = studentAutoMappingService.getAccountChartBalancesByStudentIdAutomapping(studentId);
+        if (accountBalances.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(accountBalances, HttpStatus.OK);
+    }
+
     @GetMapping("/generate/{serialNumber}")
     public ResponseEntity<byte[]> generateReceipt(@PathVariable String serialNumber) throws DocumentException, IOException, ParseException {
         List<Map<String, Object>> receiptData = financeService.generateStudentReceiptBySerialNumber(serialNumber);

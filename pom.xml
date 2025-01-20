@@ -30,6 +30,7 @@
         <java.version>17</java.version>
         <jasperreports.version>6.20.0</jasperreports.version>
         <itext.version>8.0.5</itext.version>
+        <version.httpclient>4.5.13</version.httpclient>
     </properties>
     <dependencies>
         <dependency>
@@ -76,6 +77,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${version.httpclient}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itext-core</artifactId>
             <version>${itext.version}</version>
@@ -107,6 +115,17 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>5.0.0-alpha.14</version>
+        </dependency>
+
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>

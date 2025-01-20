@@ -1,7 +1,11 @@
 package com.ctecx.argosfims.tenant.chartofaccounts;
 
+import com.ctecx.argosfims.tenant.config.TenantJdbcTemplateConfig;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,10 +14,36 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AccountChartService {
 
-    @Autowired
-    private AccountChartRepository accountChartRepository;
+
+    private  final AccountChartRepository accountChartRepository;
+    private final TenantJdbcTemplateConfig tenantJdbcTemplateConfig;
+
+    private JdbcTemplate getJdbcTemplate() {
+        return tenantJdbcTemplateConfig.getTenantJdbcTemplate();
+    }
+
+
+
+    public AccountChart getDefaultOverpaymentAccount() {
+        String sql = "SELECT id, account_name, account_code, account_group_enum, linked_receivable_account_id, is_bank_account, defaultOverpaymentsAccount FROM chartofaccounts WHERE defaultOverpaymentsAccount=1";
+        try {
+            return getJdbcTemplate().queryForObject(sql, (rs, rowNum) -> {
+                AccountChart accountChart = new AccountChart();
+                accountChart.setId(rs.getInt("id"));
+                accountChart.setName(rs.getString("account_name"));
+                accountChart.setAccountCode(rs.getInt("account_code"));
+                accountChart.setAccountGroupEnum(AccountGroup.valueOf(rs.getString("account_group_enum")));
+                accountChart.setBankAccount(rs.getBoolean("is_bank_account"));
+                accountChart.setDefaultOverpaymentsAccount(rs.getBoolean("defaultOverpaymentsAccount"));
+                return accountChart;
+            });
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Default overpayment Account not found");
+        }
+    }
 
     @Transactional
     public String createAccountChart(AccountChartRequest request) {

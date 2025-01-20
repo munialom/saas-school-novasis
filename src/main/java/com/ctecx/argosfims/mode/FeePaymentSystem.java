@@ -12,7 +12,7 @@ public class FeePaymentSystem {
         voteheads.add(new Votehead("Activity", 2000));
 
         // 2. Payment Details
-        int totalFees = 7000;
+      /*  int totalFees = 7000;*/
         int amountPaid = 15000;
         int remainingPayment = amountPaid;
 

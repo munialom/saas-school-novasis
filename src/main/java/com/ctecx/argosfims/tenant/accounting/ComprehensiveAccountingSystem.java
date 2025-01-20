@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ComprehensiveAccountingSystem {
 
-    private final RevenueProcessor revenueProcessor;
+
     private final PaymentVoucherProcessor paymentVoucherProcessor;
     private final SupplierInvoiceProcessor supplierInvoiceProcessor;
     private final InvoicePaymentProcessor invoicePaymentProcessor;
