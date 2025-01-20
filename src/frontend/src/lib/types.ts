@@ -257,6 +257,17 @@ export interface StudentFeePaymentRequest {
     balance: number;
     amount:number
 }
+/*export interface PaymentRequest {
+    studentId: number;
+    bankingDate: string;
+    paymentDate: string;
+    payMode: string;
+    term: string;
+    ref: string;
+    bankId: number;
+    studentFeePaymentRequests: StudentFeePaymentRequest[];
+}*/
+
 export interface PaymentRequest {
     studentId: number;
     bankingDate: string;
@@ -266,8 +277,9 @@ export interface PaymentRequest {
     ref: string;
     bankId: number;
     studentFeePaymentRequests: StudentFeePaymentRequest[];
+    manualAllocation:boolean
+    amountPaid?:number
 }
-
 
 export type ReportItem = { [key: string]: any };
 
