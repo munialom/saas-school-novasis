@@ -35,6 +35,25 @@ export interface StudentDTO {
 }
 
 
+export interface StudentUpdateDTO {
+    id: number;
+    admissionNumber?: string;
+    fullName?: string;
+    gender?: string;
+    location?: string;
+    admission?: string;
+    mode?: string;
+    status?: boolean;
+    yearOf?: number | null;
+    classId?: number | null;
+    streamId?: number | null;
+}
+
+export interface CascaderOption {
+    value: number;
+    label: string;
+}
+
 
 export interface ParentDetails {
     fullName: string;

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Card, Row, Col, Form, Input, Cascader, Button, Divider, Typography } from 'antd';
 import { Student } from '../../../lib/types';
 import { updateStudent } from '../../../lib/api';
-
+import {StudentUpdateDTO} from "../../../lib/types"; // Import the type
 
 const { Title } = Typography;
 
@@ -16,9 +16,9 @@ interface UpdateTabProps {
     genderOptions: { value: string; label: string }[];
     admissionOptions: { value: string; label: string }[];
     modeOptions: { value: string; label: string }[];
-    classOptions: any[];
-    streamOptions: any[];
-    yearOptions: any[];
+    classOptions: { value: string; label: string }[];
+    streamOptions: { value: string; label: string }[];
+    yearOptions: { value: string; label: string }[];
     setAlert: React.Dispatch<
         React.SetStateAction<{
             type: 'success' | 'error' | null;
@@ -43,7 +43,6 @@ const UpdateTab: React.FC<UpdateTabProps> = ({
                                                  setAlert
                                              }) => {
 
-
     useEffect(() => {
         if (student) {
             form.setFieldsValue({
@@ -64,14 +63,28 @@ const UpdateTab: React.FC<UpdateTabProps> = ({
         try {
             setLoading(true);
             const values = await form.validateFields();
-            const studentData = {
+
+       /*     const studentData:StudentUpdateDTO = {
                 id: student.id,
                 fullName: values.fullName,
                 admissionNumber: values.admissionNumber,
                 gender: values.gender ? values.gender[0] : null,
                 location: values.location,
-                classId: values.studentClass ? values.studentClass[0] : null,
-                streamId: values.studentStream ? values.studentStream[0] : null,
+                classId: classOptions.find(option => option.label === values.studentClass?.[0])?.value,
+                streamId: streamOptions.find(option => option.label === values.studentStream?.[0])?.value,
+                admission: values.admission ? values.admission[0] : null,
+                mode: values.mode ? values.mode[0] : null,
+                yearOf: values.yearOf ? values.yearOf[0] : null,
+                status: student.status
+            };*/
+            const studentData: StudentUpdateDTO = {
+                id: Number(student.id),
+                fullName: values.fullName,
+                admissionNumber: values.admissionNumber,
+                gender: values.gender ? values.gender[0] : null,
+                location: values.location,
+                classId: Number(classOptions.find(option => option.label === values.studentClass?.[0])?.value),
+                streamId: Number(streamOptions.find(option => option.label === values.studentStream?.[0])?.value),
                 admission: values.admission ? values.admission[0] : null,
                 mode: values.mode ? values.mode[0] : null,
                 yearOf: values.yearOf ? values.yearOf[0] : null,
